@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}Problem {{ problem.id }}{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('get_problem_random') }}">Go to another random problem</a>
+<pre>====== problem info ======
+id: {{ problem.id }}
+case_count: {{ problem.case_count }}
+time_limit: {{ problem.time_limit }}
+memory_limit: {{ problem.memory_limit }}</pre>
+<hr>
+
+<pre>====== problem stat ======
+num_records: {{ num_records }}
+num_accepted: {{ num_accepted }}
+ac_rate: {{ num_accepted / num_records }}
+avg_code_lines: {{ avg_code_lines }}
+avg_code_bytes: {{ avg_code_bytes }}
+avg_run_time: {{ avg_run_time }}
+avg_run_mem: {{ avg_run_mem }}
+</pre>
+<hr>
+
+<button type="button" onclick="get_random_accept_code();">Show another random accepted code</button>
+<pre id="submit_code"></pre>
+<hr>
+
+<pre>
+====== problem description ======
+title: {{ problem.title }}
+{{ problem.description }}
+</pre>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    'use strict';
+    function get_random_accept_code() {
+        const url = "{{ url_for('json_problem_random_accepted_record', problem_id=problem.id) }}";
+        $.getJSON(url, function (record) {
+            if (record.ok) {
+                $("#submit_code").text(`record_id: ${record.id}\n\n${record.submit_code}`);
+            } else {
+                $("#submit_code").text("no accepted code");
+            }
+        });
+    }
+    get_random_accept_code();
+</script>
+{% endblock %}

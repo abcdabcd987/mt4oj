@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    <style type="text/css">
+      * {
+        font-family: monospace;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        line-height: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Machine Teaching for Online Judge <small><a href="{{ url_for('get_homepage') }}">dev-helper</a></small></h1>
+    {% block content %}{% endblock %}
+    <script src="{{ url_for('static', filename='jquery-3.1.1.min.js') }}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
