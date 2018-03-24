@@ -1,3 +1,4 @@
+import shelve
 import random
 import re
 import psycopg2
@@ -12,18 +13,20 @@ def get_cur():
     return db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
+def get_features(key):
+    features = getattr(g, '_features', None)
+    if features is None:
+        features = g._features = {}
+        with shelve.open('../data/problem_features.shelf') as db:
+            features['pf'] = db['pf']
+    return features[key]
+
+
 @app.teardown_appcontext
 def teardown_db(exception):
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
-
-
-def parse_judge_message(msg):
-    # return (verdict, time in ms, memory in kb)
-    pattern = r'(.+?) \(Time: (\d+)ms, Memory: (\d+)kb\)'
-    res = re.findall(pattern, msg)
-    return list(map(lambda x: (x[0], int(x[1]), int(x[2])), res))
 
 
 @app.route('/')
@@ -45,38 +48,11 @@ def get_problem(problem_id):
     cur = get_cur()
     cur.execute('SELECT * FROM problems WHERE id=%s', (problem_id, ))
     problem = cur.fetchone()
-
-    num_records = 0
-    num_accepted = 0
-    avg_code_lines = 0
-    avg_code_bytes = 0
-    avg_run_time = 0
-    avg_run_mem = 0
-    cur.execute('SELECT * FROM records WHERE problem_id=%s AND language=%s', (problem_id, 'C++'))
-    for record in cur:
-        num_records += 1
-        if record['result'] != 'Accepted':
-            continue
-        num_accepted += 1
-        avg_code_lines += len(record['submit_code'].splitlines())
-        avg_code_bytes += len(record['submit_code'])
-        testcases = parse_judge_message(record['judge_message'])
-        avg_run_time += sum(map(lambda x: x[1], testcases))
-        avg_run_mem += max(map(lambda x: x[1], testcases))
-    if num_accepted:
-        avg_code_lines /= num_accepted
-        avg_code_bytes /= num_accepted
-        avg_run_time /= num_accepted
-        avg_run_mem /= num_accepted
+    pf = get_features('pf')[problem_id]
 
     return render_template('problem.html',
                            problem=problem,
-                           num_records=num_records,
-                           num_accepted=num_accepted,
-                           avg_code_lines=avg_code_lines,
-                           avg_code_bytes=avg_code_bytes,
-                           avg_run_time=avg_run_time,
-                           avg_run_mem=avg_run_mem)
+                           pf=pf)
 
 
 @app.route('/json/record/<int:record_id>.json')

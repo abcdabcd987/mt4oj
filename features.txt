@@ -1,0 +1,19 @@
+==== user features ====
+uf_num_submit          the number of submissions made by this user
+uf_ac_rate             the acceptance ratio of this user
+uf_num_submit_type_T   the number of submissions to type T problems made by this user
+uf_ac_rate_type_T      the acceptance ratio of type T problems of this user
+
+==== problem features ====
+pf_is_type_T           is this problem type T
+pf_num_submit          the number of submissions to this problem
+pf_ac_rate             the acceptance ratio of this problem
+pf_avg_lines           average lines of code of this problem
+pf_avg_bytes           average bytes of code of this problem
+pf_avg_time            average run time of this problem
+pf_avg_mem             average maximum memory usage of this problem
+pf_avg_score           average score of this problem
+
+==== user-problem mixed features ====
+mf_num_submit          the number of submissions to this problem made by this user
+mf_ac_rate             the acceptance ratio of this problem and this user

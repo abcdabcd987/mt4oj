@@ -1,4 +1,5 @@
 mt4oj_online_judge.pg_dump
+data/
 
 
 # Created by https://www.gitignore.io/api/vim,macos,python,intellij+all
