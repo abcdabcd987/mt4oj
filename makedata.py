@@ -97,7 +97,7 @@ def run_makedata(db):
     cur.execute('SELECT COUNT(*) as count FROM records WHERE language=%s', ('C++', ))
     cnt = cur.fetchone()['count']
     cnt_train = int(cnt * 0.8)
-    f = gzip.open('data/train.txt.gz', 'wt')
+    f = gzip.open('data/data.txt.gz', 'wt')
 
     cur.execute('SELECT * FROM records WHERE language=%s', ('C++', ))
     for i, record in tqdm(enumerate(cur), total=cnt):
@@ -127,10 +127,7 @@ def run_makedata(db):
             p['pf_avg_mem'],
             p['pf_avg_score'],
         ]
-        
-        if i == cnt_train:
-            f.close()
-            f = gzip.open('data/test.txt.gz', 'wt')
+
         f.write(str(label))
         for j, v in enumerate(features):
             f.write(' {}:{}'.format(j, v))
