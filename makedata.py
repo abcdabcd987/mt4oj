@@ -4,7 +4,9 @@ import shelve
 import psycopg2
 import psycopg2.extras
 import multiprocessing
+import numpy as np
 from tqdm import tqdm
+from scipy.sparse import csr_matrix, save_npz
 
 
 def get_db():
@@ -97,10 +99,12 @@ def run_makedata(db):
     cur.execute('SELECT COUNT(*) as count FROM records WHERE language=%s', ('C++', ))
     cnt = cur.fetchone()['count']
     cnt_train = int(cnt * 0.8)
-    f = gzip.open('data/data.txt.gz', 'wt')
+    x = np.empty((cnt, 9), dtype=np.float32)
+    y = np.empty(cnt, dtype=np.int8)
 
     cur.execute('SELECT * FROM records WHERE language=%s', ('C++', ))
-    for i, record in tqdm(enumerate(cur), total=cnt):
+    cnt_rows = 0
+    for record in tqdm(cur, total=cnt):
         if record['result'] in ['Compile Error', 'System Error', 'Unknown']:
             continue
         u = users.get(record['owner'], None)
@@ -127,14 +131,14 @@ def run_makedata(db):
             p['pf_avg_mem'],
             p['pf_avg_score'],
         ]
-
-        f.write(str(label))
         for j, v in enumerate(features):
-            f.write(' {}:{}'.format(j, v))
-        f.write('\n')
+            x[cnt_rows, j] = v
+        y[cnt_rows] = label
+        cnt_rows += 1
+    x = x[:cnt_rows, :]
+    y = y[:cnt_rows]
 
-    f.close()
-        
+    np.savez('data/data.npz', x=x, y=y)
 
 
 def main():

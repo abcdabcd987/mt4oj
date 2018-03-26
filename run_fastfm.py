@@ -1,17 +1,16 @@
+import numpy as np
 import fastFM.sgd
+from scipy.sparse import load_npz, csr_matrix
 from sklearn.datasets import load_svmlight_file
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.preprocessing import normalize
 
 
-def read_libsvm_file(filename):
-    data = load_svmlight_file(filename)
-    return data[0], data[1]
-
 def main():
     print('reading data...')
-    x_all, y_all = read_libsvm_file('data/data.txt.gz')
-    x_all = normalize(x_all)
+    with np.load('data/data.npz') as data:
+        x_all, y_all = data['x'], data['y']
+    x_all = csr_matrix(normalize(x_all))
     num_train = int(len(y_all) * 0.8)
     x_train, y_train = x_all[:num_train], y_all[:num_train]
     x_test, y_test = x_all[num_train:], y_all[num_train:]
