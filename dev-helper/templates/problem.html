@@ -3,6 +3,7 @@
 {% block content %}
 
 <a href="{{ url_for('get_problem_random') }}">Go to another random problem</a>
+<a href="{{ url_for('get_next_problem', last_problem_id=problem.id) }}">Go to next problem</a>
 <pre>====== problem info ======
 id: {{ problem.id }}
 case_count: {{ problem.case_count }}
@@ -21,15 +22,29 @@ pf_avg_score : {{ pf.pf_avg_score  }}
 </pre>
 <hr>
 
-<button type="button" onclick="get_random_accept_code();">Show another random accepted code</button>
-<pre id="submit_code"></pre>
-<hr>
-
 <pre>
 ====== problem description ======
 title: {{ problem.title }}
 {{ problem.description }}
 </pre>
+<hr>
+
+<button type="button" onclick="get_random_accept_code();">Show another random accepted code</button>
+<pre id="submit_code"></pre>
+<hr>
+
+
+<form action="{{ url_for('set_problem_tags', problem_id=problem.id) }}" method="post">
+    <ul>
+    {% for tag in tag_list %}
+        <li>
+            <input type="checkbox" name="{{ tag }}" id="tag-{{ loop.index }}" {% if tag in tags %}checked{% endif %}>
+            <label for="tag-{{ loop.index }}">{{ tag }}</label>
+        </li>
+    {% endfor %}
+    </ul>
+    <button type="submit">save tags</button>
+</form>
 {% endblock %}
 
 

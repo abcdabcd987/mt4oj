@@ -1,6 +1,7 @@
 import shelve
 import random
 import re
+import yaml
 import psycopg2
 import psycopg2.extras
 from flask import request, redirect, session, url_for, render_template, g, jsonify
@@ -20,6 +21,29 @@ def get_features(key):
         with shelve.open('../data/problem_features.shelf') as db:
             features['pf'] = db['pf']
     return features[key]
+
+
+def get_problem_tag_list():
+    tags = getattr(g, '_problem_tag_list', None)
+    if tags is None:
+        with open('../problem_tags.txt') as f:
+            tags = g._problem_tag_list = f.read().splitlines()
+    return tags
+
+
+def get_problem_tags_yaml():
+    tags = getattr(g, '_problem_tags_yaml', None)
+    if tags is None:
+        with open('../data/problem_tags.yaml', 'r+') as f:
+            tags = g._problem_tags_yaml = yaml.load(f)
+        if tags is None:
+            tags = g._problem_tags_yaml = {}
+    return tags
+
+
+def save_problem_tags_yaml():
+    with open('../data/problem_tags.yaml', 'w') as f:
+        yaml.dump(g._problem_tags_yaml, f, encoding='utf-8', allow_unicode=True)
 
 
 @app.teardown_appcontext
@@ -49,10 +73,32 @@ def get_problem(problem_id):
     cur.execute('SELECT * FROM problems WHERE id=%s', (problem_id, ))
     problem = cur.fetchone()
     pf = get_features('pf')[problem_id]
+    tags = set(get_problem_tags_yaml().get(problem_id, []))
+    tag_list = get_problem_tag_list()
 
     return render_template('problem.html',
                            problem=problem,
-                           pf=pf)
+                           pf=pf,
+                           tag_list=tag_list, tags=tags)
+
+
+@app.route('/problem/<int:last_problem_id>/next')
+def get_next_problem(last_problem_id):
+    cur = get_cur()
+    cur.execute('SELECT MIN(id) AS id FROM problems WHERE id > %s', (last_problem_id, ))
+    problem_id = cur.fetchone()['id']
+    return redirect(url_for('get_problem', problem_id=problem_id))
+
+
+@app.route('/problem/<int:problem_id>/set/tags', methods=['POST'])
+def set_problem_tags(problem_id):
+    tags = set()
+    for name, value in request.form.items():
+        if value == 'on':
+            tags.add(name)
+    get_problem_tags_yaml()[problem_id] = sorted(tags)
+    save_problem_tags_yaml()
+    return redirect(url_for('get_problem', problem_id=problem_id))
 
 
 @app.route('/json/record/<int:record_id>.json')
