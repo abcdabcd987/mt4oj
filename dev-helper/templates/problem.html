@@ -30,7 +30,7 @@ title: {{ problem.title }}
 <hr>
 
 <button type="button" onclick="get_random_accept_code();">Show another random accepted code</button>
-<pre id="submit_code"></pre>
+<pre><code id="submit_code" class="cpp"></code></pre>
 <hr>
 
 
@@ -49,16 +49,18 @@ title: {{ problem.title }}
 
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='highlight/highlight.pack.js') }}"></script>
 <script>
     'use strict';
     function get_random_accept_code() {
         const url = "{{ url_for('json_problem_random_accepted_record', problem_id=problem.id) }}";
         $.getJSON(url, function (record) {
             if (record.ok) {
-                $("#submit_code").text(`record_id: ${record.id}\n\n${record.submit_code}`);
+                $("#submit_code").text(`// record_id: ${record.id}\n\n${record.submit_code}`);
             } else {
-                $("#submit_code").text("no accepted code");
+                $("#submit_code").text("// no accepted code");
             }
+            hljs.highlightBlock($("#submit_code").get(0));
         });
     }
     get_random_accept_code();
