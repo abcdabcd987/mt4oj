@@ -1,5 +1,7 @@
 import re
+import yaml
 import gzip
+import time
 import shelve
 import psycopg2
 import psycopg2.extras
@@ -15,12 +17,20 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.preprocessing import normalize
 
 
+def np_divide(a, b):
+    # see: https://stackoverflow.com/questions/26248654/numpy-return-0-with-divide-by-zero
+    return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
+
+
 def get_db():
-    return psycopg2.connect('dbname=online_judge')
+    db = psycopg2.connect('dbname=online_judge')
+    # db.autocommit = True
+    return db
 
 
-def get_cur(db):
-    return db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+def get_cur(db, *, named=True):
+    name = 'named_cursor_{}'.format(time.time())
+    return db.cursor(name=name if named else None, cursor_factory=psycopg2.extras.DictCursor)
 
 
 def parse_judge_message(msg):
@@ -28,6 +38,21 @@ def parse_judge_message(msg):
     pattern = r'(.+?) \(Time: (\d+)ms, Memory: (\d+)kb\)'
     res = re.findall(pattern, msg)
     return list(map(lambda x: (x[0], int(x[1]), int(x[2])), res))
+
+
+def get_problem_tags():
+    with open('data/problem_tags.yaml') as f:
+        problem_tags_yaml = yaml.load(f)
+    all_tags = set(tag for tag_list in problem_tags_yaml.values() for tag in tag_list)
+    map_tag_idx = {tag: i for i, tag in enumerate(all_tags)}
+    problem_tags = {}
+    for problem_id, tag_list in problem_tags_yaml.items():
+        onehot = np.zeros(len(all_tags), np.int8)
+        for tag in tag_list:
+            idx = map_tag_idx[tag]
+            onehot[idx] = 1
+        problem_tags[problem_id] = onehot
+    return problem_tags
 
 
 def pool_initializer():
@@ -82,7 +107,7 @@ def extract_single_problem_features(problem_id):
 
 
 def calc_features(u, p):
-    return [
+    basic_features = np.array([
         u['num_submit'],
         u['num_ac'] / u['num_submit'] if u['num_submit'] else 0,
         p['pf_num_submit'],
@@ -92,7 +117,16 @@ def calc_features(u, p):
         p['pf_avg_time'],
         p['pf_avg_mem'],
         p['pf_avg_score'],
-    ]
+    ], np.float32)
+    u_num_tag_ac = u['num_tag_ac'].astype(np.float32)
+    u_num_tag_submit = u['num_tag_submit'].astype(np.float32)
+    u_tag_ac_rate = np_divide(u_num_tag_ac, u_num_tag_submit)
+    return np.concatenate((
+        basic_features,
+        u_num_tag_submit,
+        u_tag_ac_rate,
+        p['pf_tags'].astype(np.float32)
+    ))
 
 
 def run_make_problem_features(db):
@@ -106,21 +140,29 @@ def run_make_problem_features(db):
     pool.close()
     pool.join()
 
+    problem_tags = get_problem_tags()
+    for problem_id, tags in problem_tags.items():
+        pf[problem_id]['pf_tags'] = tags
+
     with shelve.open('data/problem_features.shelf') as db:
         db['pf'] = pf
+    cur.close()
 
 
 def run_makedata(db):
-    cur = get_cur(db)
-    with shelve.open('data/problem_features.shelf') as db:
-        pf = db['pf']
+    with shelve.open('data/problem_features.shelf') as shelf:
+        pf = shelf['pf']
+    num_tags = len(next(iter(pf.values()))['pf_tags'])
 
     users = {}
+    cur = get_cur(db)
     cur.execute('SELECT COUNT(*) as count FROM records WHERE language=%s', ('C++', ))
     cnt = cur.fetchone()['count']
-    x = np.empty((cnt, 9), dtype=np.float32)
+    x = np.empty((cnt, 9 + num_tags*3), dtype=np.float32)
     y = np.empty(cnt, dtype=np.int8)
+    cur.close()
 
+    cur = get_cur(db, named=True)
     cur.execute('SELECT * FROM records WHERE language=%s', ('C++', ))
     cnt_rows = 0
     for record in tqdm(cur, total=cnt):
@@ -128,7 +170,12 @@ def run_makedata(db):
             continue
         u = users.get(record['owner'], None)
         if u is None:
-            u = users[record['owner']] = dict(num_submit=0, num_ac=0)
+            u = users[record['owner']] = dict(
+                num_submit=0,
+                num_ac=0,
+                num_tag_submit=np.zeros(num_tags, np.int32),
+                num_tag_ac=np.zeros(num_tags, np.int32)
+            )
         p = pf.get(record['problem_id'], None)
         if p is None:
             continue  # problem not exist
@@ -136,9 +183,11 @@ def run_makedata(db):
         if record['result'] == 'Accepted':
             label = 1
             u['num_ac'] += 1
+            u['num_tag_ac'] += p['pf_tags']
         else:
             label = -1
         u['num_submit'] += 1
+        u['num_tag_submit'] += p['pf_tags']
         features = calc_features(u, p)
         for j, v in enumerate(features):
             x[cnt_rows, j] = v
@@ -148,12 +197,14 @@ def run_makedata(db):
     y = y[:cnt_rows]
 
     np.savez('data/data.npz', x=x, y=y)
+    cur.close()
 
 
 def run_makedata_recommend(db):
     cur = get_cur(db)
     with shelve.open('data/problem_features.shelf') as db:
         pf = db['pf']
+    num_tags = len(next(iter(pf.values()))['pf_tags'])
     
     cur.execute('SELECT * FROM reports WHERE id=%s', (636, ))
     report = cur.fetchone()
@@ -162,7 +213,7 @@ def run_makedata_recommend(db):
     report_student_list = [x['owner'] for x in cur]
 
     users = {}
-    x_train = np.empty((534586, 9), dtype=np.float32)
+    x_train = np.empty((534586, 9 + num_tags*3), dtype=np.float32)
     y_train = np.empty(534586, dtype=np.int8)
 
     print('generate train data')
@@ -200,14 +251,15 @@ def run_makedata_recommend(db):
         shelf['user_list'] = user_list
         shelf['user_features'] = users
         shelf['report_problem_list'] = report_problem_list
+    cur.close()
 
 
 
 def main():
     db = get_db()
     # run_make_problem_features(db)
-    # run_makedata(db)
-    run_makedata_recommend(db)
+    run_makedata(db)
+    # run_makedata_recommend(db)
 
 
 if __name__ == '__main__':

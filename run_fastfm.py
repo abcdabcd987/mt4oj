@@ -133,5 +133,5 @@ def run_recommend():
 
 
 if __name__ == '__main__':
-    # run_train_test()
-    run_recommend()
+    run_train_test()
+    # run_recommend()
