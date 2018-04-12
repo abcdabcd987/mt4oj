@@ -28,7 +28,7 @@ def get_db():
     return db
 
 
-def get_cur(db, *, named=True):
+def get_cur(db, *, named=False):
     name = 'named_cursor_{}'.format(time.time())
     return db.cursor(name=name if named else None, cursor_factory=psycopg2.extras.DictCursor)
 
@@ -201,22 +201,24 @@ def run_makedata(db):
 
 
 def run_makedata_recommend(db):
-    cur = get_cur(db)
-    with shelve.open('data/problem_features.shelf') as db:
-        pf = db['pf']
+    with shelve.open('data/problem_features.shelf') as shelf:
+        pf = shelf['pf']
     num_tags = len(next(iter(pf.values()))['pf_tags'])
     
+    cur = get_cur(db)
     cur.execute('SELECT * FROM reports WHERE id=%s', (636, ))
     report = cur.fetchone()
     report_problem_list = tuple(map(int, report['problem_list'].strip().splitlines()))
     cur.execute('SELECT DISTINCT owner FROM records WHERE submit_datetime BETWEEN %s AND %s AND problem_id IN %s', (report['start_datetime'], report['end_datetime'], report_problem_list))
     report_student_list = [x['owner'] for x in cur]
+    cur.close()
 
     users = {}
     x_train = np.empty((534586, 9 + num_tags*3), dtype=np.float32)
     y_train = np.empty(534586, dtype=np.int8)
 
     print('generate train data')
+    cur = get_cur(db, named=True)
     cur.execute('SELECT * FROM records WHERE language=%s AND submit_datetime<%s', ('C++', report['start_datetime']))
     cnt_train = 0
     for record in tqdm(cur):
@@ -224,7 +226,12 @@ def run_makedata_recommend(db):
             continue
         u = users.get(record['owner'], None)
         if u is None:
-            u = users[record['owner']] = dict(num_submit=0, num_ac=0)
+            u = users[record['owner']] = dict(
+                num_submit=0,
+                num_ac=0,
+                num_tag_submit=np.zeros(num_tags, np.int32),
+                num_tag_ac=np.zeros(num_tags, np.int32)
+            )
         p = pf.get(record['problem_id'], None)
         if p is None:
             continue  # problem not exist
@@ -232,9 +239,11 @@ def run_makedata_recommend(db):
         if record['result'] == 'Accepted':
             label = 1
             u['num_ac'] += 1
+            u['num_tag_ac'] += p['pf_tags']
         else:
             label = -1
         u['num_submit'] += 1
+        u['num_tag_submit'] += p['pf_tags']
         features = calc_features(u, p)
         for j, v in enumerate(features):
             x_train[cnt_train, j] = v
@@ -258,8 +267,8 @@ def run_makedata_recommend(db):
 def main():
     db = get_db()
     # run_make_problem_features(db)
-    run_makedata(db)
-    # run_makedata_recommend(db)
+    # run_makedata(db)
+    run_makedata_recommend(db)
 
 
 if __name__ == '__main__':

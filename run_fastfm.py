@@ -9,8 +9,13 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.preprocessing import normalize
 
 
+def np_divide(a, b):
+    # see: https://stackoverflow.com/questions/26248654/numpy-return-0-with-divide-by-zero
+    return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
+
+
 def calc_features(u, p):
-    return [
+    basic_features = np.array([
         u['num_submit'],
         u['num_ac'] / u['num_submit'] if u['num_submit'] else 0,
         p['pf_num_submit'],
@@ -20,7 +25,16 @@ def calc_features(u, p):
         p['pf_avg_time'],
         p['pf_avg_mem'],
         p['pf_avg_score'],
-    ]
+    ], np.float32)
+    u_num_tag_ac = u['num_tag_ac'].astype(np.float32)
+    u_num_tag_submit = u['num_tag_submit'].astype(np.float32)
+    u_tag_ac_rate = np_divide(u_num_tag_ac, u_num_tag_submit)
+    return np.concatenate((
+        basic_features,
+        u_num_tag_submit,
+        u_tag_ac_rate,
+        p['pf_tags'].astype(np.float32)
+    ))
 
 
 def run_train_test():
@@ -54,11 +68,13 @@ def run_recommend():
     with shelve.open('data/problem_features.shelf') as shelf:
         pf = shelf['pf']
     problem_list = sorted(pf.keys())
+    num_tags = len(next(iter(pf.values()))['pf_tags'])
+    num_features = 9 + num_tags*3
     csv = {u: {} for u in user_list}
 
     def gen_eval_data(users):
         cnt_eval = len(problem_list) * len(user_list)
-        x_eval = np.empty((cnt_eval, 9), dtype=np.float32)
+        x_eval = np.empty((cnt_eval, num_features), dtype=np.float32)
         i = 0
         for student_id in user_list:
             u = users[student_id]
@@ -94,13 +110,16 @@ def run_recommend():
     for i, student_id in enumerate(user_list):
         u = users[student_id]
         for problem_id in report_problem_list:
+            p = pf[problem_id]
             index = problem_list.index(problem_id)
-            p = prob_before[i * len(problem_list) + index]
+            chance = prob_before[i * len(problem_list) + index]
             while True:
                 u['num_submit'] += 1
-                if random.random() < p:
-                    u['num_ac'] += 1
+                u['num_tag_submit'] += p['pf_tags']
+                if random.random() < chance:
                     break
+            u['num_ac'] += 1
+            u['num_tag_ac'] += p['pf_tags']
     x_eval = gen_eval_data(users)
     prob_adhoc = fm.predict_proba(x_eval)
     write_ability(x_eval, prob_adhoc, 'adhoc')
@@ -114,12 +133,15 @@ def run_recommend():
         # recommend the top n problem
         u = users[student_id]
         for index in argsort[:len(report_problem_list)]:
-            p = prob[index]
+            p = pf[problem_id]
+            chance = prob[index]
             while True:
                 u['num_submit'] += 1
-                if random.random() < p:
-                    u['num_ac'] += 1
+                u['num_tag_submit'] += p['pf_tags']
+                if random.random() < chance:
                     break
+            u['num_ac'] += 1
+            u['num_tag_ac'] += p['pf_tags']
     x_eval = gen_eval_data(users)
     prob_recommend = fm.predict_proba(x_eval)
     write_ability(x_eval, prob_recommend, 'recommend')
@@ -133,5 +155,5 @@ def run_recommend():
 
 
 if __name__ == '__main__':
-    run_train_test()
-    # run_recommend()
+    # run_train_test()
+    run_recommend()
