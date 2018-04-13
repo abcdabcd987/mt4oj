@@ -15,9 +15,15 @@ def np_divide(a, b):
 
 
 def calc_features(u, p):
-    basic_features = np.array([
+    uf_basic_features = np.array([
         u['num_submit'],
         u['num_ac'] / u['num_submit'] if u['num_submit'] else 0,
+    ], np.float32)
+    uf_num_tag_ac = u['num_tag_ac'].astype(np.float32)
+    uf_num_tag_submit = u['num_tag_submit'].astype(np.float32)
+    uf_tag_ac_rate = np_divide(uf_num_tag_ac, uf_num_tag_submit)
+
+    pf_basic_features = np.array([
         p['pf_num_submit'],
         p['pf_ac_rate'],
         p['pf_avg_lines'],
@@ -26,14 +32,13 @@ def calc_features(u, p):
         p['pf_avg_mem'],
         p['pf_avg_score'],
     ], np.float32)
-    u_num_tag_ac = u['num_tag_ac'].astype(np.float32)
-    u_num_tag_submit = u['num_tag_submit'].astype(np.float32)
-    u_tag_ac_rate = np_divide(u_num_tag_ac, u_num_tag_submit)
+    pf_tags = p['pf_tags'].astype(np.float32)
     return np.concatenate((
-        basic_features,
-        u_num_tag_submit,
-        u_tag_ac_rate,
-        p['pf_tags'].astype(np.float32)
+        uf_basic_features,
+        uf_num_tag_submit,
+        uf_tag_ac_rate,
+        pf_basic_features,
+        pf_tags,
     ))
 
 
@@ -45,6 +50,8 @@ def run_train_test():
     num_train = int(len(y_all) * 0.8)
     x_train, y_train = x_all[:num_train], y_all[:num_train]
     x_test, y_test = x_all[num_train:], y_all[num_train:]
+    perm = np.random.permutation(num_train)
+    x_train, y_train = x_train[perm], y_train[perm]
     
     print('fitting the fm...')
     fm = fastFM.sgd.FMClassification(n_iter=1000, init_stdev=0.1, l2_reg_w=0, l2_reg_V=0, rank=2, step_size=0.1)
@@ -155,5 +162,5 @@ def run_recommend():
 
 
 if __name__ == '__main__':
-    # run_train_test()
-    run_recommend()
+    run_train_test()
+    # run_recommend()

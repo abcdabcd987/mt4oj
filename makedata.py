@@ -24,7 +24,6 @@ def np_divide(a, b):
 
 def get_db():
     db = psycopg2.connect('dbname=online_judge')
-    # db.autocommit = True
     return db
 
 
@@ -62,7 +61,7 @@ def pool_initializer():
 
 def extract_single_problem_features(problem_id):
     global db
-    cur = get_cur(db)
+    cur = get_cur(db, named=True)
 
     num_records = 0
     num_accepted = 0
@@ -107,9 +106,15 @@ def extract_single_problem_features(problem_id):
 
 
 def calc_features(u, p):
-    basic_features = np.array([
+    uf_basic_features = np.array([
         u['num_submit'],
         u['num_ac'] / u['num_submit'] if u['num_submit'] else 0,
+    ], np.float32)
+    uf_num_tag_ac = u['num_tag_ac'].astype(np.float32)
+    uf_num_tag_submit = u['num_tag_submit'].astype(np.float32)
+    uf_tag_ac_rate = np_divide(uf_num_tag_ac, uf_num_tag_submit)
+
+    pf_basic_features = np.array([
         p['pf_num_submit'],
         p['pf_ac_rate'],
         p['pf_avg_lines'],
@@ -118,14 +123,13 @@ def calc_features(u, p):
         p['pf_avg_mem'],
         p['pf_avg_score'],
     ], np.float32)
-    u_num_tag_ac = u['num_tag_ac'].astype(np.float32)
-    u_num_tag_submit = u['num_tag_submit'].astype(np.float32)
-    u_tag_ac_rate = np_divide(u_num_tag_ac, u_num_tag_submit)
+    pf_tags = p['pf_tags'].astype(np.float32)
     return np.concatenate((
-        basic_features,
-        u_num_tag_submit,
-        u_tag_ac_rate,
-        p['pf_tags'].astype(np.float32)
+        uf_basic_features,
+        uf_num_tag_submit,
+        uf_tag_ac_rate,
+        pf_basic_features,
+        pf_tags,
     ))
 
 
@@ -163,7 +167,7 @@ def run_makedata(db):
     cur.close()
 
     cur = get_cur(db, named=True)
-    cur.execute('SELECT * FROM records WHERE language=%s', ('C++', ))
+    cur.execute('SELECT owner, problem_id, result FROM records WHERE language=%s ORDER BY id', ('C++', ))
     cnt_rows = 0
     for record in tqdm(cur, total=cnt):
         if record['result'] in ['Compile Error', 'System Error', 'Unknown']:
@@ -188,9 +192,7 @@ def run_makedata(db):
             label = -1
         u['num_submit'] += 1
         u['num_tag_submit'] += p['pf_tags']
-        features = calc_features(u, p)
-        for j, v in enumerate(features):
-            x[cnt_rows, j] = v
+        x[cnt_rows] = calc_features(u, p)
         y[cnt_rows] = label
         cnt_rows += 1
     x = x[:cnt_rows, :]
@@ -219,7 +221,7 @@ def run_makedata_recommend(db):
 
     print('generate train data')
     cur = get_cur(db, named=True)
-    cur.execute('SELECT * FROM records WHERE language=%s AND submit_datetime<%s', ('C++', report['start_datetime']))
+    cur.execute('SELECT owner, problem_id, result FROM records WHERE language=%s AND submit_datetime<%s ORDER BY id', ('C++', report['start_datetime']))
     cnt_train = 0
     for record in tqdm(cur):
         if record['result'] in ['Compile Error', 'System Error', 'Unknown']:
@@ -244,9 +246,7 @@ def run_makedata_recommend(db):
             label = -1
         u['num_submit'] += 1
         u['num_tag_submit'] += p['pf_tags']
-        features = calc_features(u, p)
-        for j, v in enumerate(features):
-            x_train[cnt_train, j] = v
+        x_train[cnt_rows] = calc_features(u, p)
         y_train[cnt_train] = label
         cnt_train += 1
 
@@ -267,8 +267,8 @@ def run_makedata_recommend(db):
 def main():
     db = get_db()
     # run_make_problem_features(db)
-    # run_makedata(db)
-    run_makedata_recommend(db)
+    run_makedata(db)
+    # run_makedata_recommend(db)
 
 
 if __name__ == '__main__':
