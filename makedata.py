@@ -1,4 +1,5 @@
 import re
+import math
 import yaml
 import gzip
 import time
@@ -20,6 +21,10 @@ from sklearn.preprocessing import normalize
 def np_divide(a, b):
     # see: https://stackoverflow.com/questions/26248654/numpy-return-0-with-divide-by-zero
     return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
+
+
+def np_log(x):
+    return np.log(x) if x != 0 else 0
 
 
 def get_db():

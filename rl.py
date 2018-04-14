@@ -10,7 +10,7 @@ import fastFM.sgd
 from scipy.sparse import load_npz, csr_matrix
 from sklearn.datasets import load_svmlight_file
 from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import normalize, MaxAbsScaler
 from keras.models import Sequential
 from keras.layers import Dense, Reshape, Flatten
 from keras.optimizers import Adam
@@ -48,17 +48,19 @@ class Environment:
         logging.info('fitting fm')
         perm = np.random.permutation(len(y_train))
         x_train, y_train = x_train[perm], y_train[perm]
-        self._x_train = x_train
+        self._raw_train_features = x_train
+        self._scalar = MaxAbsScaler().fit(x_train)
+        x_train = self._scalar.transform(x_train)
         self._fm = fastFM.sgd.FMClassification(n_iter=1000, init_stdev=0.1, l2_reg_w=0, l2_reg_V=0, rank=2, step_size=0.1)
-        self._fm.fit(csr_matrix(normalize(x_train)), y_train)
+        self._fm.fit(csr_matrix(x_train), y_train)
 
         # collect init states
         logging.info('collecting init states')
         INIT_STATE_LEAST_NUM_AC = 12  # minimal number of ac for this record to become the RL init state
-        init_state_idx_pool = np.empty(x_train.shape[0], np.float32)
+        init_state_idx_pool = np.empty(len(y_train), np.float32)
         cnt_init = 0
-        for i in range(x_train.shape[0]):
-            num_ac = x_train[i, 0] * x_train[i, 1]
+        for i in range(len(y_train)):
+            num_ac = self._raw_train_features[i, 0] * self._raw_train_features[i, 1]
             if num_ac > INIT_STATE_LEAST_NUM_AC:
                 init_state_idx_pool[cnt_init] = i
                 cnt_init += 1
@@ -90,7 +92,8 @@ class Environment:
         for i, problem_id in enumerate(self._sorted_problem_ids):
             p = self._pf[problem_id]
             x[i] = self._state_to_user_model_features(self._cur_state, p)
-        self._cur_prob = self._fm.predict_proba(csr_matrix(normalize(x)))
+        x = self._scalar.transform(x)
+        self._cur_prob = self._fm.predict_proba(csr_matrix(x))
         return np.average(self._cur_prob)
 
 
@@ -101,7 +104,7 @@ class Environment:
 
     def new_episode(self):
         state_idx = random.randrange(self._init_state_idx_pool.shape[0])
-        self._cur_state = self._user_model_features_to_state(self._x_train[state_idx])
+        self._cur_state = self._user_model_features_to_state(self._raw_train_features[state_idx])
         self._cur_score = self._calc_student_score()
         self._cur_num_recommend = 0
         return self._cur_state
@@ -258,5 +261,5 @@ def run_rl():
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.DEBUG)
-    # test_env()
-    run_rl()
+    test_env()
+    # run_rl()
