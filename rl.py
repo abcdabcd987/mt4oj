@@ -6,7 +6,7 @@ import random
 import shelve
 import logging
 import numpy as np
-import fastFM.sgd
+import xgboost as xgb
 from scipy.sparse import load_npz, csr_matrix
 from sklearn.datasets import load_svmlight_file
 from sklearn.metrics import accuracy_score, roc_auc_score
@@ -44,17 +44,14 @@ class Environment:
         self._sorted_problem_ids = sorted(self._pf.keys())
         self._map_idx_problem_id = dict(enumerate(self._sorted_problem_ids))
 
-        # fit fm
-        logging.info('fitting fm')
-        perm = np.random.permutation(len(y_train))
-        x_train, y_train = x_train[perm], y_train[perm]
+        logging.info('transforming data')
         self._raw_train_features = x_train
         self._scalar = MaxAbsScaler().fit(x_train)
-        x_train = self._scalar.transform(x_train)
-        self._fm = fastFM.sgd.FMClassification(n_iter=1000, init_stdev=0.1, l2_reg_w=0, l2_reg_V=0, rank=2, step_size=0.1)
-        self._fm.fit(csr_matrix(x_train), y_train)
 
-        # collect init states
+        logging.info('loadding xgboost model')
+        self._bst = xgb.Booster()
+        self._bst.load_model('data/xgb.model')
+
         logging.info('collecting init states')
         INIT_STATE_LEAST_NUM_AC = 12  # minimal number of ac for this record to become the RL init state
         init_state_idx_pool = np.empty(len(y_train), np.float32)
@@ -93,7 +90,7 @@ class Environment:
             p = self._pf[problem_id]
             x[i] = self._state_to_user_model_features(self._cur_state, p)
         x = self._scalar.transform(x)
-        self._cur_prob = self._fm.predict_proba(csr_matrix(x))
+        self._cur_prob = self._bst.predict(xgb.DMatrix(x))
         return np.average(self._cur_prob)
 
 
@@ -227,6 +224,7 @@ def test_env():
             action = random.randrange(num_actions)
             state, reward, done = env.step(action)
             sum_reward += reward
+            print('sum_reward', sum_reward)
 
 
 def run_rl():
