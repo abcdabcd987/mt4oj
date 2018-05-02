@@ -6,13 +6,10 @@ import random
 import shelve
 import logging
 import numpy as np
-import xgboost as xgb
-from scipy.sparse import load_npz, csr_matrix
-from sklearn.datasets import load_svmlight_file
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.preprocessing import normalize, MaxAbsScaler
-from keras.models import Sequential
-from keras.layers import Dense, Reshape, Flatten
+from keras.models import Sequential, load_model
+from keras.layers import Dense, Reshape, Flatten, LSTM
 from keras.optimizers import Adam
 from keras.layers.convolutional import Convolution2D
 
@@ -48,9 +45,8 @@ class Environment:
         self._raw_train_features = x_train
         self._scalar = MaxAbsScaler().fit(x_train)
 
-        logging.info('loadding xgboost model')
-        self._bst = xgb.Booster()
-        self._bst.load_model('data/xgb.model')
+        logging.info('loadding rnn model')
+        self._rnn = load_model('data/rnn/model.h5')
 
         logging.info('collecting init states')
         INIT_STATE_LEAST_NUM_AC = 12  # minimal number of ac for this record to become the RL init state
@@ -90,7 +86,8 @@ class Environment:
             p = self._pf[problem_id]
             x[i] = self._state_to_user_model_features(self._cur_state, p)
         x = self._scalar.transform(x)
-        self._cur_prob = self._bst.predict(xgb.DMatrix(x))
+        self._cur_prob = self._rnn.predict(x.reshape(x.shape[0], 1, x.shape[1]))
+        self._cur_prob = self._cur_prob.reshape((self._cur_prob.shape[0],))
         return np.average(self._cur_prob)
 
 
