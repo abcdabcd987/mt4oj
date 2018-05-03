@@ -39,10 +39,8 @@ class InputSequenceSharedData:
             user_id = self.data_user_ids[row]
             self.test_user_rows[user_id].append(row)
 
-        random_state = np.random.RandomState(1234)
-        self.perm = random_state.permutation(self.num_users)
         self.train_user_offsets, self.test_user_offsets = [0], [0]
-        for user_id in self.perm:
+        for user_id in range(self.num_users):
             self.train_user_offsets.append(self.train_user_offsets[-1] + len(self.train_user_rows[user_id]))
             self.test_user_offsets.append(self.test_user_offsets[-1] + len(self.test_user_rows[user_id]))
         self.train_user_offsets = self.train_user_offsets[1:]
@@ -58,6 +56,11 @@ class InputSequence(Sequence):
         self._batch_size = batch_size
         self._lookback = lookback
         self._total_rows = self._data.num_train if self._is_train else self._data.num_rows - self._data.num_train
+        self._random_state = np.random.RandomState(1234)
+        self.on_epoch_end()
+
+    def on_epoch_end(self):
+        self._perm = self._random_state.permutation(self._total_rows)  # shuffle
 
     def __len__(self):
         return int(np.ceil(self._total_rows / self._batch_size))
@@ -70,10 +73,9 @@ class InputSequence(Sequence):
         batch_y = np.empty(ret_rows, dtype=np.int8)
         user_offsets = self._data.train_user_offsets if self._is_train else self._data.test_user_offsets
         user_rows = self._data.train_user_rows if self._is_train else self._data.test_user_rows
-        for i, idx in enumerate(range(start_idx, end_idx)):
-            user_idx = bisect.bisect_right(user_offsets, idx)
-            user_id = self._data.perm[user_idx]
-            user_row_offset = idx - user_offsets[user_idx-1] if user_idx != 0 else idx
+        for i, idx in enumerate(self._perm[start_idx:end_idx]):
+            user_id = bisect.bisect_right(user_offsets, idx)
+            user_row_offset = idx - user_offsets[user_id-1] if user_id != 0 else idx
             for t in range(self._lookback+1):
                 if user_row_offset-t >= 0:
                     row = user_rows[user_id][user_row_offset]
@@ -84,7 +86,7 @@ class InputSequence(Sequence):
                     if row_offset >= 0:
                         row = train_rows[row_offset]
                         batch_x[i, t] = self._data.data_x[row]
-                # otherwise just fill 0
+                # otherwise (the very begining of a user), just fill 0
             row = user_rows[user_id][user_row_offset]
             batch_y[i] = self._data.data_y[row]
         return batch_x, batch_y
@@ -94,10 +96,12 @@ def run_train_test():
     batch_size = 256
     lookback = 5
 
+    print('preparing data...')
     data = InputSequenceSharedData(frac_train=0.8)
+
+    print('fetching test set...')
     train_input_seq = InputSequence(data, is_train=True, batch_size=batch_size, lookback=lookback)
     test_input_seq = InputSequence(data, is_train=False, batch_size=batch_size, lookback=lookback)
-    batch_x, batch_y = train_input_seq[20]
     x_test, y_test = [], []
     for i in range(len(test_input_seq)):
         batch_x, batch_y = test_input_seq[i]
@@ -121,7 +125,8 @@ def run_train_test():
         model.fit_generator(train_input_seq,
             epochs=1, verbose=1,
             use_multiprocessing=True, workers=2,
-            shuffle=False)
+            shuffle=False,  # InputSequence handles shuffling
+        )
         model.save('data/rnn/model.h5')
         shutil.copy('data/rnn/model.h5', 'data/rnn/model-epoch-{}.h5'.format(epoch))
 
