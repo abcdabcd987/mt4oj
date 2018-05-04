@@ -46,6 +46,8 @@ def run_train_test():
     print('reading data...')
     with np.load('data/data.npz') as data:
         x_all, y_all = data['x'], data['y']
+    y_all = y_all.astype(np.int8)
+    y_all[y_all == 0] = -1
 
     # split train and test
     num_train = int(len(y_all) * 0.8)

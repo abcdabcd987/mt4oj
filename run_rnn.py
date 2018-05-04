@@ -76,7 +76,7 @@ class InputSequence(Sequence):
         for i, idx in enumerate(self._perm[start_idx:end_idx]):
             user_id = bisect.bisect_right(user_offsets, idx)
             user_row_offset = idx - user_offsets[user_id-1] if user_id != 0 else idx
-            for t in range(self._lookback+1):
+            for t in range(self._lookback, -1, -1):
                 if user_row_offset-t >= 0:
                     row = user_rows[user_id][user_row_offset]
                     batch_x[i, t] = self._data.data_x[row]
@@ -87,7 +87,6 @@ class InputSequence(Sequence):
                         row = train_rows[row_offset]
                         batch_x[i, t] = self._data.data_x[row]
                 # otherwise (the very begining of a user), just fill 0
-            row = user_rows[user_id][user_row_offset]
             batch_y[i] = self._data.data_y[row]
         return batch_x, batch_y
 
@@ -121,7 +120,7 @@ def run_train_test():
 
     # keras: train model
     print('training...')
-    for epoch in range(1, 13):
+    for epoch in range(1, 6):
         model.fit_generator(train_input_seq,
             epochs=1, verbose=1,
             use_multiprocessing=True, workers=2,
@@ -131,7 +130,7 @@ def run_train_test():
         shutil.copy('data/rnn/model.h5', 'data/rnn/model-epoch-{}.h5'.format(epoch))
 
         # validate
-        y_pred_proba = model.predict(x_test)
+        y_pred_proba = model.predict(x_test).squeeze()
         y_pred = y_pred_proba.copy()
         y_pred[y_pred > 0.5] = 1
         y_pred[y_pred <= 0.5] = 0
@@ -141,7 +140,7 @@ def run_train_test():
     # validate
     print('validating...')
     model = load_model('data/rnn/model.h5')
-    y_pred_proba = model.predict(x_test)
+    y_pred_proba = model.predict(x_test).squeeze()
     y_pred = y_pred_proba.copy()
     y_pred[y_pred > 0.5] = 1
     y_pred[y_pred <= 0.5] = 0

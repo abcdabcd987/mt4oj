@@ -1,6 +1,7 @@
 import os
 os.environ['KERAS_BACKEND'] = 'tensorflow'
 
+import bisect
 import copy
 import random
 import shelve
@@ -31,42 +32,46 @@ def get_cur(db, *, named=False):
 
 class Environment:
     def __init__(self):
+        self._lookback = 5
+
         logging.info('reading data')
         with shelve.open('data/problem_features.shelf') as shelf:
             self._pf = shelf['pf']
+        with np.load('data/features.npz') as data:
+            data_user_id = data['user_id']
+            self._data_y = data['label']
+            self._data_problem_id = data['problem_id']
+            self._data_num_rows = int(data['num_rows'])
+            data_num_users = int(data['num_users'])
         with np.load('data/data.npz') as data:
-            x_train, y_train = data['x'], data['y']
+            self._data_x = data['x']
         self._num_problems = len(self._pf)
         self._num_tags = len(next(iter(self._pf.values()))['pf_tags'])
+        self._num_user_features = 2+2*self._num_tags
         self._sorted_problem_ids = sorted(self._pf.keys())
         self._map_idx_problem_id = dict(enumerate(self._sorted_problem_ids))
 
         logging.info('transforming data')
-        self._raw_train_features = x_train
-        self._scalar = MaxAbsScaler().fit(x_train)
+        self._scalar = MaxAbsScaler().fit(self._data_x)
 
         logging.info('loadding rnn model')
         self._rnn = load_model('data/rnn/model.h5')
 
         logging.info('collecting init states')
-        INIT_STATE_LEAST_NUM_AC = 12  # minimal number of ac for this record to become the RL init state
-        init_state_idx_pool = np.empty(len(y_train), np.float32)
-        cnt_init = 0
-        for i in range(len(y_train)):
-            num_ac = self._raw_train_features[i, 0] * self._raw_train_features[i, 1]
-            if num_ac > INIT_STATE_LEAST_NUM_AC:
-                init_state_idx_pool[cnt_init] = i
-                cnt_init += 1
-        self._init_state_idx_pool = init_state_idx_pool[:cnt_init]
+        self._user_rows = [[] for _ in range(data_num_users)]
+        for row in range(self._data_num_rows):
+            user_id = data_user_id[row]
+            self._user_rows[user_id].append(row)
+        self._user_offsets = [0]
+        for user_id in range(data_num_users):
+            self._user_offsets.append(self._user_offsets[-1] + len(self._user_rows[user_id]))
+        self._user_offsets = self._user_offsets[1:]
 
         logging.info('environment init done')
 
 
-    def _user_model_features_to_state(self, x):
-        return x[:2+self._num_tags*2]
-
-
-    def _state_to_user_model_features(self, s, p):
+    def _get_problem_features(self, problem_id):
+        p = self._pf[problem_id]
         pf_basic_features = np.array([
             p['pf_num_submit'],
             p['pf_ac_rate'],
@@ -77,17 +82,47 @@ class Environment:
             p['pf_avg_score'],
         ], np.float32)
         pf_tags = p['pf_tags'].astype(np.float32)
-        return np.concatenate((s, pf_basic_features, pf_tags))
+        return np.concatenate((pf_basic_features, pf_tags))
+
+
+    def _calc_next_user_features(self, last_x, problem_id, is_accepted):
+        # extract user features from the vector
+        u_num_submit = last_x[0]
+        u_num_ac = last_x[0] * last_x[1]
+        u_num_tag_submit = last_x[2 : 2+self._num_tags]
+        u_num_tag_ac = u_num_tag_submit * last_x[2+self._num_tags : 2+self._num_tags*2]
+
+        # update features
+        p = self._pf[problem_id]
+        if is_accepted:
+            u_num_ac += 1
+            u_num_tag_ac += p['pf_tags']
+        u_num_submit += 1
+        u_num_tag_submit += p['pf_tags']
+
+        # form the vector
+        uf_basic_features = np.array([
+            u_num_submit,
+            u_num_ac / u_num_submit if u_num_submit else 0,
+        ], np.float32)
+        uf_tag_ac_rate = np_divide(u_num_tag_ac, u_num_tag_submit)
+        return np.concatenate((uf_basic_features, u_num_tag_submit, uf_tag_ac_rate))
 
 
     def _calc_student_score(self):
-        x = np.empty((self._num_problems, 9+self._num_tags*3), np.float32)
+        x_lookback = np.empty((self._lookback, self._data_x.shape[1]), dtype=np.float32)
+        x_lookback[:, :self._num_user_features] = self._cur_user_features[1:]
+        for t in range(self._lookback):
+            problem_id = self._cur_problem_ids[t]
+            x_lookback[t, self._num_user_features:] = self._get_problem_features(problem_id)
+
+        x = np.empty((self._num_problems, self._lookback+1, self._data_x.shape[1]), dtype=np.float32)
         for i, problem_id in enumerate(self._sorted_problem_ids):
-            p = self._pf[problem_id]
-            x[i] = self._state_to_user_model_features(self._cur_state, p)
-        x = self._scalar.transform(x)
-        self._cur_prob = self._rnn.predict(x.reshape(x.shape[0], 1, x.shape[1]))
-        self._cur_prob = self._cur_prob.reshape((self._cur_prob.shape[0],))
+            x[i, 0, :self._num_user_features] = self._cur_next_user_features
+            x[i, 0, self._num_user_features:] = self._get_problem_features(problem_id)
+            x[i, 1:] = x_lookback
+
+        self._cur_prob = self._rnn.predict(x).squeeze()
         return np.average(self._cur_prob)
 
 
@@ -97,11 +132,22 @@ class Environment:
 
 
     def new_episode(self):
-        state_idx = random.randrange(self._init_state_idx_pool.shape[0])
-        self._cur_state = self._user_model_features_to_state(self._raw_train_features[state_idx])
+        self._cur_user_features = np.zeros((self._lookback+1, self._num_user_features), dtype=np.float32)
+        self._cur_problem_ids = [None] * (self._lookback+1)
+        idx = random.randrange(self._data_num_rows)
+        user_id = bisect.bisect_right(self._user_offsets, idx)
+        user_row_offset = idx - self._user_offsets[user_id-1] if user_id != 0 else idx
+        for t in range(self._lookback, -1, -1):
+            if user_row_offset-t >= 0:
+                row = self._user_rows[user_id][user_row_offset]
+                self._cur_user_features[t] = self._data_x[row, :self._num_user_features]
+                self._cur_problem_ids[t] = self._data_problem_id[row]
+        is_accepted = bool(self._data_y[row])
+        self._cur_next_user_features = self._calc_next_user_features(self._cur_user_features[0], self._cur_problem_ids[0], is_accepted)
+
         self._cur_score = self._calc_student_score()
         self._cur_num_recommend = 0
-        return self._cur_state
+        return self._cur_user_features
 
 
     def step(self, action):
@@ -109,35 +155,29 @@ class Environment:
         if self._cur_num_recommend >= EPISODE_NUM_RECOMMEND:
             logging.warning('recommend more than %d problems', EPISODE_NUM_RECOMMEND)
         problem_id = self._map_idx_problem_id[action]
-        p = self._pf[problem_id]
-
-        # extract user feature from the state
-        u_num_submit = self._cur_state[0]
-        u_num_ac = self._cur_state[0] * self._cur_state[1]
-        u_num_tag_submit = self._cur_state[2 : 2+self._num_tags]
-        u_num_tag_ac = u_num_tag_submit * self._cur_state[2+self._num_tags : 2+self._num_tags*2]
 
         # pretend the user to solve this problem
         prob = self._cur_prob[action]
         num_tries = np.random.geometric(prob)
-        u_num_submit += num_tries
-        u_num_ac += 1
-        u_num_tag_submit += num_tries * p['pf_tags']
-        u_num_tag_ac += p['pf_tags']
 
-        # construct the state
-        uf_ac_rate = u_num_ac / u_num_submit
-        uf_tag_ac_rate = np_divide(u_num_tag_ac, u_num_tag_submit)
-        uf_basic_features = np.array([u_num_submit, uf_ac_rate], np.float32)
-        self._cur_state = np.concatenate((uf_basic_features, u_num_tag_submit, uf_tag_ac_rate))
+        # update states
+        for i in range(num_tries):
+            is_accepted = i+1 == num_tries
+            cur_user_features = np.empty((self._lookback+1, self._num_user_features), dtype=np.float32)
+            cur_user_features[0] = self._cur_next_user_features
+            cur_user_features[1:] = self._cur_user_features[:-1]
+            cur_problem_ids = [problem_id] + self._cur_problem_ids[:-1]
+            self._cur_user_features = cur_user_features
+            self._cur_problem_ids = cur_problem_ids
+            self._cur_next_user_features = self._calc_next_user_features(self._cur_user_features[0], self._cur_problem_ids[0], is_accepted)
 
         # calc reward
         last_score = self._cur_score
-        self._calc_student_score()
+        self._cur_score = self._calc_student_score()
         reward = self._cur_score - last_score
         self._cur_num_recommend += 1
         done = self._cur_num_recommend >= EPISODE_NUM_RECOMMEND
-        return self._cur_state, reward, done
+        return self._cur_user_features, reward, done
 
 
 
