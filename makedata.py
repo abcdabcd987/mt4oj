@@ -110,34 +110,6 @@ def extract_single_problem_features(problem_id):
     return problem_id, f
 
 
-def calc_features(u, p):
-    uf_basic_features = np.array([
-        u['num_submit'],
-        u['num_ac'] / u['num_submit'] if u['num_submit'] else 0,
-    ], np.float32)
-    uf_num_tag_ac = u['num_tag_ac'].astype(np.float32)
-    uf_num_tag_submit = u['num_tag_submit'].astype(np.float32)
-    uf_tag_ac_rate = np_divide(uf_num_tag_ac, uf_num_tag_submit)
-
-    pf_basic_features = np.array([
-        p['pf_num_submit'],
-        p['pf_ac_rate'],
-        p['pf_avg_lines'],
-        p['pf_avg_bytes'],
-        p['pf_avg_time'],
-        p['pf_avg_mem'],
-        p['pf_avg_score'],
-    ], np.float32)
-    pf_tags = p['pf_tags'].astype(np.float32)
-    return np.concatenate((
-        uf_basic_features,
-        uf_num_tag_submit,
-        uf_tag_ac_rate,
-        pf_basic_features,
-        pf_tags,
-    ))
-
-
 def run_make_problem_features(db):
     cur = get_cur(db)
     cur.execute('SELECT id FROM problems')
@@ -155,116 +127,6 @@ def run_make_problem_features(db):
 
     with shelve.open('data/problem_features.shelf') as db:
         db['pf'] = pf
-    cur.close()
-
-
-def run_makedata(db):
-    with shelve.open('data/problem_features.shelf') as shelf:
-        pf = shelf['pf']
-    num_tags = len(next(iter(pf.values()))['pf_tags'])
-
-    users = {}
-    cur = get_cur(db)
-    cur.execute('SELECT COUNT(*) as count FROM records WHERE language=%s', ('C++', ))
-    cnt = cur.fetchone()['count']
-    x = np.empty((cnt, 9 + num_tags*3), dtype=np.float32)
-    y = np.empty(cnt, dtype=np.int8)
-    cur.close()
-
-    cur = get_cur(db, named=True)
-    cur.execute('SELECT owner, problem_id, result FROM records WHERE language=%s ORDER BY id', ('C++', ))
-    cnt_rows = 0
-    for record in tqdm(cur, total=cnt):
-        if record['result'] in ['Compile Error', 'System Error', 'Unknown']:
-            continue
-        u = users.get(record['owner'], None)
-        if u is None:
-            u = users[record['owner']] = dict(
-                num_submit=0,
-                num_ac=0,
-                num_tag_submit=np.zeros(num_tags, np.int32),
-                num_tag_ac=np.zeros(num_tags, np.int32)
-            )
-        p = pf.get(record['problem_id'], None)
-        if p is None:
-            continue  # problem not exist
-        
-        if record['result'] == 'Accepted':
-            label = 1
-            u['num_ac'] += 1
-            u['num_tag_ac'] += p['pf_tags']
-        else:
-            label = -1
-        u['num_submit'] += 1
-        u['num_tag_submit'] += p['pf_tags']
-        x[cnt_rows] = calc_features(u, p)
-        y[cnt_rows] = label
-        cnt_rows += 1
-    x = x[:cnt_rows, :]
-    y = y[:cnt_rows]
-
-    np.savez('data/data.npz', x=x, y=y)
-    cur.close()
-
-
-def run_makedata_recommend(db):
-    with shelve.open('data/problem_features.shelf') as shelf:
-        pf = shelf['pf']
-    num_tags = len(next(iter(pf.values()))['pf_tags'])
-    
-    cur = get_cur(db)
-    cur.execute('SELECT * FROM reports WHERE id=%s', (636, ))
-    report = cur.fetchone()
-    report_problem_list = tuple(map(int, report['problem_list'].strip().splitlines()))
-    cur.execute('SELECT DISTINCT owner FROM records WHERE submit_datetime BETWEEN %s AND %s AND problem_id IN %s', (report['start_datetime'], report['end_datetime'], report_problem_list))
-    report_student_list = [x['owner'] for x in cur]
-    cur.close()
-
-    users = {}
-    x_train = np.empty((534586, 9 + num_tags*3), dtype=np.float32)
-    y_train = np.empty(534586, dtype=np.int8)
-
-    print('generate train data')
-    cur = get_cur(db, named=True)
-    cur.execute('SELECT owner, problem_id, result FROM records WHERE language=%s AND submit_datetime<%s ORDER BY id', ('C++', report['start_datetime']))
-    cnt_train = 0
-    for record in tqdm(cur):
-        if record['result'] in ['Compile Error', 'System Error', 'Unknown']:
-            continue
-        u = users.get(record['owner'], None)
-        if u is None:
-            u = users[record['owner']] = dict(
-                num_submit=0,
-                num_ac=0,
-                num_tag_submit=np.zeros(num_tags, np.int32),
-                num_tag_ac=np.zeros(num_tags, np.int32)
-            )
-        p = pf.get(record['problem_id'], None)
-        if p is None:
-            continue  # problem not exist
-
-        if record['result'] == 'Accepted':
-            label = 1
-            u['num_ac'] += 1
-            u['num_tag_ac'] += p['pf_tags']
-        else:
-            label = -1
-        u['num_submit'] += 1
-        u['num_tag_submit'] += p['pf_tags']
-        x_train[cnt_rows] = calc_features(u, p)
-        y_train[cnt_train] = label
-        cnt_train += 1
-
-    x_train = x_train[:cnt_train, :]
-    y_train = y_train[:cnt_train]
-    user_list = [x for x in report_student_list if x in users]
-
-    with shelve.open('data/recommend.shelf') as shelf:
-        shelf['x_train'] = x_train
-        shelf['y_train'] = y_train
-        shelf['user_list'] = user_list
-        shelf['user_features'] = users
-        shelf['report_problem_list'] = report_problem_list
     cur.close()
 
 
@@ -311,6 +173,10 @@ def run_make_features(db):
 
         f['user_id'][cnt_rows] = u['user_id']
         f['problem_id'][cnt_rows] = problem_id
+        f['uf_num_submit'][cnt_rows] = u['num_submit']
+        f['uf_ac_rate'][cnt_rows] = u['num_ac'] / u['num_submit'] if u['num_submit'] else 0
+        f['uf_tag_num_submit'][cnt_rows] = u['num_tag_submit']
+        f['uf_tag_ac_rate'][cnt_rows] = np_divide(u['num_tag_ac'].astype(np.float32), u['num_tag_submit'].astype(np.float32))
         if record['result'] == 'Accepted':
             f['label'][cnt_rows] = 1
             u['num_ac'] += 1
@@ -319,11 +185,6 @@ def run_make_features(db):
             f['label'][cnt_rows] = 0
         u['num_submit'] += 1
         u['num_tag_submit'] += p['pf_tags']
-
-        f['uf_num_submit'][cnt_rows] = u['num_submit']
-        f['uf_ac_rate'][cnt_rows] = u['num_ac'] / u['num_submit'] if u['num_submit'] else 0
-        f['uf_tag_num_submit'][cnt_rows] = u['num_tag_submit']
-        f['uf_tag_ac_rate'][cnt_rows] = np_divide(u['num_tag_ac'].astype(np.float32), u['num_tag_submit'].astype(np.float32))
         cnt_rows += 1
     for k, v in f.items():
         f[k] = v[:cnt_rows]
@@ -345,7 +206,8 @@ def run_makedata_from_features():
         'pf_avg_time',
         'pf_avg_mem',
         'pf_avg_score',
-        'pf_tags'
+        'pf_tags',
+        # 'label'  # just for fun: include label, then you can expect ~100% acc and auc
     ]
 
     with shelve.open('data/problem_features.shelf') as shelf:
@@ -367,12 +229,10 @@ def run_makedata_from_features():
 
     length = 0
     for name in features:
-        if name.startswith('uf_'):
-            sample = f[name][0]
-        elif name.startswith('pf_'):
+        if name.startswith('pf_'):
             sample = sample_pf[name]
         else:
-            assert False
+            sample = f[name][0]
         if type(sample) is np.ndarray:
             length += len(sample)
         else:
@@ -385,12 +245,10 @@ def run_makedata_from_features():
         offset = 0
         p = pf[f['problem_id'][row]]
         for name in features:
-            if name.startswith('uf_'):
-                value = f[name][row]
-            elif name.startswith('pf_'):
+            if name.startswith('pf_'):
                 value = p[name]
             else:
-                assert False
+                value = f[name][row]
             if type(value) is np.ndarray:
                 flen = len(value)
             else:
@@ -405,8 +263,6 @@ def run_makedata_from_features():
 def main():
     db = get_db()
     # run_make_problem_features(db)
-    # run_makedata(db)
-    # run_makedata_recommend(db)
     # run_make_features(db)
     run_makedata_from_features()
 
