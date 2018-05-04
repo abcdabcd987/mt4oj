@@ -31,8 +31,8 @@ def get_cur(db, *, named=False):
 
 
 class Environment:
-    def __init__(self):
-        self._lookback = 5
+    def __init__(self, lookback):
+        self._lookback = lookback
 
         logging.info('reading data')
         with shelve.open('data/problem_features.shelf') as shelf:
@@ -110,11 +110,12 @@ class Environment:
 
 
     def _calc_student_score(self):
-        x_lookback = np.empty((self._lookback, self._data_x.shape[1]), dtype=np.float32)
+        x_lookback = np.zeros((self._lookback, self._data_x.shape[1]), dtype=np.float32)
         x_lookback[:, :self._num_user_features] = self._cur_user_features[1:]
         for t in range(self._lookback):
             problem_id = self._cur_problem_ids[t]
-            x_lookback[t, self._num_user_features:] = self._get_problem_features(problem_id)
+            if problem_id is not None:
+                x_lookback[t, self._num_user_features:] = self._get_problem_features(problem_id)
 
         x = np.empty((self._num_problems, self._lookback+1, self._data_x.shape[1]), dtype=np.float32)
         for i, problem_id in enumerate(self._sorted_problem_ids):
@@ -183,7 +184,8 @@ class Environment:
 
 class PGAgent:
     # ref: https://github.com/keon/policy-gradient/blob/master/pg.py
-    def __init__(self, state_size, action_size):
+    def __init__(self, lookback, state_size, action_size):
+        self.lookback = lookback
         self.state_size = state_size
         self.action_size = action_size
         self.gamma = 0.99
@@ -197,7 +199,8 @@ class PGAgent:
 
     def _build_model(self):
         model = Sequential()
-        model.add(Dense(64, activation='relu', kernel_initializer='he_uniform', input_shape=(self.state_size,)))
+        model.add(Flatten(input_shape=(self.lookback+1, self.state_size)))
+        model.add(Dense(64, activation='relu', kernel_initializer='he_uniform'))
         model.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
         model.add(Dense(self.action_size, activation='softmax'))
         opt = Adam(lr=self.learning_rate)
@@ -212,8 +215,8 @@ class PGAgent:
         self.rewards.append(reward)
 
     def act(self, state):
-        state = state.reshape([1, state.shape[0]])
-        aprob = self.model.predict(state, batch_size=1).flatten()
+        state = state.reshape([1] + list(state.shape))
+        aprob = self.model.predict(state).flatten()
         self.probs.append(aprob)
         prob = aprob / np.sum(aprob)
         action = np.random.choice(self.action_size, 1, p=prob)[0]
@@ -265,17 +268,18 @@ def test_env():
 
 
 def run_rl():
-    env = Environment()
+    lookback = 5
+    env = Environment(lookback)
     state = env.new_episode()
     score = 0
     episode = 0
 
-    state_size = len(state)
+    state_size = state.shape[1]
     action_size = env.num_actions
-    agent = PGAgent(state_size, action_size)
-    MODEL_FILENAME = 'data/pgagent.h5'
-    if os.path.exists(MODEL_FILENAME):
-        agent.load(MODEL_FILENAME)
+    agent = PGAgent(lookback, state_size, action_size)
+    # MODEL_FILENAME = 'data/pgagent.h5'
+    # if os.path.exists(MODEL_FILENAME):
+    #     agent.load(MODEL_FILENAME)
     while True:
         # x = normalize(state)
         x = state
@@ -296,5 +300,5 @@ def run_rl():
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.DEBUG)
-    test_env()
-    # run_rl()
+    # test_env()
+    run_rl()

@@ -11,13 +11,6 @@ import numpy as np
 from tqdm import tqdm
 
 
-import fastFM.sgd
-from scipy.sparse import load_npz, csr_matrix, save_npz
-from sklearn.datasets import load_svmlight_file
-from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.preprocessing import normalize
-
-
 def np_divide(a, b):
     # see: https://stackoverflow.com/questions/26248654/numpy-return-0-with-divide-by-zero
     return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
@@ -45,7 +38,7 @@ def parse_judge_message(msg):
 
 
 def get_problem_tags():
-    with open('data/problem_tags.yaml') as f:
+    with open('data/problem_tags.yaml', encoding='utf-8') as f:
         problem_tags_yaml = yaml.load(f)
     all_tags = set(tag for tag_list in problem_tags_yaml.values() for tag in tag_list)
     map_tag_idx = {tag: i for i, tag in enumerate(all_tags)}
