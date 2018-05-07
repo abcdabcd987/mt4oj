@@ -13,9 +13,9 @@ parser.add_argument('--processes', default=4, help='Number of processes that gen
 parser.add_argument('--lr', default=0.001, help='Learning rate', dest='learning_rate', type=float)
 parser.add_argument('--steps', default=80000000, help='Number of frames to decay learning rate', dest='steps', type=int)
 parser.add_argument('--batch_size', default=20, help='Batch size to use during training', dest='batch_size', type=int)
-parser.add_argument('--swap_freq', default=100, help='Number of frames before swapping network weights', dest='swap_freq', type=int)
+parser.add_argument('--swap_freq', default=10, help='Number of frames before swapping network weights', dest='swap_freq', type=int)
 parser.add_argument('--checkpoint', default=0, help='Frame to resume training', dest='checkpoint', type=int)
-parser.add_argument('--save_freq', default=250000, help='Number of frames before saving weights', dest='save_freq', type=int)
+parser.add_argument('--save_freq', default=25000, help='Number of frames before saving weights', dest='save_freq', type=int)
 parser.add_argument('--queue_size', default=256, help='Size of queue holding agent experience', dest='queue_size', type=int)
 parser.add_argument('--n_step', default=5, help='Number of steps', dest='n_step', type=int)
 parser.add_argument('--beta', default=0.01, dest='beta', type=float)
@@ -68,7 +68,7 @@ def value_loss():
 # -----
 
 class LearningAgent(object):
-    def __init__(self, lookback, state_size, action_size, batch_size=32, swap_freq=200):
+    def __init__(self, lookback, state_size, action_size, batch_size, swap_freq):
         from keras.optimizers import RMSprop        
         # -----
         self.lookback = lookback
@@ -81,10 +81,6 @@ class LearningAgent(object):
         self.train_net.compile(optimizer=RMSprop(epsilon=0.1, rho=0.99),
                                loss=[value_loss(), policy_loss(adventage, args.beta)])
 
-        self.pol_loss = deque(maxlen=25)
-        self.val_loss = deque(maxlen=25)
-        self.values = deque(maxlen=25)
-        self.entropy = deque(maxlen=25)
         self.swap_freq = swap_freq
         self.swap_counter = self.swap_freq
         self.unroll = np.arange(self.batch_size)
@@ -94,7 +90,7 @@ class LearningAgent(object):
     def learn(self, last_observations, actions, rewards, learning_rate=0.001):
         import keras.backend as K
         K.set_value(self.train_net.optimizer.lr, learning_rate)
-        frames = len(last_observations)
+        frames = 1
         self.counter += frames
         # -----
         values, policy = self.train_net.predict([last_observations, self.unroll])
@@ -104,22 +100,6 @@ class LearningAgent(object):
         self.targets[self.unroll, actions] = 1.
         # -----
         loss = self.train_net.train_on_batch([last_observations, adventage], [rewards, self.targets])
-        entropy = np.mean(-policy * np.log(policy + 0.00000001))
-        self.pol_loss.append(loss[2])
-        self.val_loss.append(loss[1])
-        self.entropy.append(entropy)
-        self.values.append(np.mean(values))
-        min_val, max_val, avg_val = min(self.values), max(self.values), np.mean(self.values)
-        print('\rFrames: %d | Policy-Loss %10.6f Avg %10.6f '
-              '| Value-Loss %10.6f Avg %10.6f '
-              '| Entropy %7.6f Avg %7.6f '
-              '| V-value Min %6.3f Max %6.3f Avg %6.3f' % (
-                  self.counter,
-                  loss[2], np.mean(self.pol_loss),
-                  loss[1], np.mean(self.val_loss),
-                  entropy, np.mean(self.entropy),
-                  min_val, max_val, avg_val), end='')
-        # -----
         self.swap_counter -= frames
         if self.swap_counter < 0:
             self.swap_counter += self.swap_freq
@@ -131,8 +111,6 @@ def learn_proc(mem_queue, weight_dict):
     import os
     from rl_common import Environment
     pid = os.getpid()
-    os.environ['THEANO_FLAGS'] = 'floatX=float32,device=gpu,nvcc.fastmath=False,lib.cnmem=0.3,' + \
-                                 'compiledir=th_comp_learn'
     # -----
     print(' %5d> Learning process' % (pid,))
     # -----
@@ -146,6 +124,8 @@ def learn_proc(mem_queue, weight_dict):
     state = env.new_episode()
     state_size = state.shape[1]
     action_size = env.num_actions
+    del state
+    del env
     agent = LearningAgent(args.lookback, state_size, action_size, batch_size=args.batch_size, swap_freq=args.swap_freq)
     # -----
     if checkpoint > 0:
@@ -178,7 +158,7 @@ def learn_proc(mem_queue, weight_dict):
         save_counter -= 1
         if save_counter < 0:
             save_counter += save_freq
-            agent.train_net.save_weights('model-%s-%d.h5' % (args.game, agent.counter,), overwrite=True)
+            agent.train_net.save_weights('data/a3c-%d.h5' % (agent.counter,), overwrite=True)
 
 
 class ActingAgent(object):
@@ -240,7 +220,7 @@ class ActingAgent(object):
         self.observations = observation
 
 
-def generate_experience_proc(mem_queue, weight_dict, no):
+def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
     import os
     from rl_common import Environment
     pid = os.getpid()
@@ -293,8 +273,8 @@ def generate_experience_proc(mem_queue, weight_dict, no):
             done = done or op_count >= 100
             op_last = action
             # -----
-            if frames % 2000 == 0:
-                print('\n %5d> Best: %.6f; Avg: %.6f' % (pid, best_score, avg_score))
+            # if frames % 2000 == 0:
+            #     print('\n %5d> Best: %.6f; Avg: %.6f' % (pid, best_score, avg_score))
             if frames % batch_size == 0:
                 update = weight_dict.get('update', 0)
                 if update > last_update:
@@ -302,6 +282,7 @@ def generate_experience_proc(mem_queue, weight_dict, no):
                     # print(' %5d> Getting weights from dict' % (pid,))
                     agent.load_net.set_weights(weight_dict['weights'])
         # -----
+        episode_reward_queue.put(episode_reward)
         best_score = max(best_score, episode_reward)
         avg_score = avg_score * 0.99 + episode_reward * 0.01
 
@@ -338,12 +319,27 @@ def main():
     manager = Manager()
     weight_dict = manager.dict()
     mem_queue = manager.Queue(args.queue_size)
+    episode_reward_queue = manager.Queue()
     pool = Pool(args.processes + 1, init_worker)
     try:
         for i in range(args.processes):
-            pool.apply_async(LogExceptions(generate_experience_proc), (mem_queue, weight_dict, i))
+            pool.apply_async(LogExceptions(generate_experience_proc), (mem_queue, weight_dict, i, episode_reward_queue))
         pool.apply_async(LogExceptions(learn_proc), (mem_queue, weight_dict))
         pool.close()
+
+        latest_rewards = deque(maxlen=10)
+        cnt = 0
+        ema = 0
+        while True:
+            reward = episode_reward_queue.get()
+            latest_rewards.appendleft(reward)
+            ema = ema * 0.99 + reward * 0.01
+            cnt += 1
+            recent = ', '.join(map(lambda x: '{:+.4f}'.format(x), latest_rewards))
+            print('\repisode {} reward ema {:+.6f} recent [{}]'.format(cnt, ema, recent), end='')
+            if cnt % 50 == 0:
+                print('')
+
         pool.join()
     except KeyboardInterrupt:
         pool.terminate()
