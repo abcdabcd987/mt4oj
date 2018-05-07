@@ -113,7 +113,7 @@ def run_train_test():
     # keras: build graph
     print('building graph...')
     model = Sequential()
-    model.add(LSTM(100, input_shape=(lookback+1, data.data_x.shape[1])))
+    model.add(LSTM(10, input_shape=(lookback+1, data.data_x.shape[1])))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.summary()
