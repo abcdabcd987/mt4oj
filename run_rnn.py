@@ -13,6 +13,12 @@ from keras.utils import Sequence
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler, MaxAbsScaler
 
+from keras.backend.tensorflow_backend import set_session
+import tensorflow as tf
+config = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)  # to allow a3c running more workers
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
+
 
 class InputSequenceSharedData:
     def __init__(self, *, frac_train):

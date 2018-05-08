@@ -5,6 +5,9 @@ from collections import deque
 import numpy as np
 import argparse
 import traceback
+import time
+import os
+GPUS = list(map(int, os.environ.get('CUDA_VISIBLE_DEVICES', '-1').split(',')))
 
 # -----
 parser = argparse.ArgumentParser(description='Training model')
@@ -107,8 +110,9 @@ class LearningAgent(object):
         return False
 
 
-def learn_proc(mem_queue, weight_dict):
+def learn_proc(mem_queue, weight_dict, no):
     import os
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUS[no % len(GPUS)]) if GPUS else '-1'
     from rl_common import Environment
     pid = os.getpid()
     # -----
@@ -222,6 +226,7 @@ class ActingAgent(object):
 
 def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
     import os
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUS[no % len(GPUS)]) if GPUS else '-1'
     from rl_common import Environment
     pid = os.getpid()
     os.environ['THEANO_FLAGS'] = 'floatX=float32,device=gpu,nvcc.fastmath=True,lib.cnmem=0,' + \
@@ -324,20 +329,40 @@ def main():
     try:
         for i in range(args.processes):
             pool.apply_async(LogExceptions(generate_experience_proc), (mem_queue, weight_dict, i, episode_reward_queue))
-        pool.apply_async(LogExceptions(learn_proc), (mem_queue, weight_dict))
+        pool.apply_async(LogExceptions(learn_proc), (mem_queue, weight_dict, args.processes))
         pool.close()
 
-        latest_rewards = deque(maxlen=10)
+        start_time = time.time()
+        newline_time = start_time
+        recent_length = 100
+        recent_rewards = deque()
+        recent_cnt = 0
         cnt = 0
         ema = 0
         while True:
             reward = episode_reward_queue.get()
-            latest_rewards.appendleft(reward)
-            ema = ema * 0.99 + reward * 0.01
             cnt += 1
-            recent = ', '.join(map(lambda x: '{:+.4f}'.format(x), latest_rewards))
-            print('\repisode {} reward ema {:+.6f} recent [{}]'.format(cnt, ema, recent), end='')
-            if cnt % 50 == 0:
+            recent_cnt += 1
+            ema = ema * 0.99 + reward * 0.01
+            while len(recent_rewards) >= recent_length:
+                recent_rewards.popleft()
+            recent_rewards.append(reward)
+            recent_min = np.min(recent_rewards)
+            recent_max = np.max(recent_rewards)
+            recent_avg = np.average(recent_rewards)
+            recent_std = np.std(recent_rewards)
+
+            now = time.time()
+            elapse = int(now - start_time)
+            h = elapse // 3600
+            m = elapse // 60 % 60
+            s = elapse % 60
+            episode_per_minute = cnt / elapse * 60
+            print('\r[{:02d}h{:02d}m{:02d}s]episode:{} ({:.0f} episodes/m) reward ema:{:+.6f} min:{:+.6f} max:{:+.6f} avg:{:+.6f} std:{:.6f}'.format(h, m, s, cnt, episode_per_minute, ema, recent_min, recent_max, recent_avg, recent_std), end='')
+            if now-newline_time > 60.:
+                newline_time = now
+                recent_length = recent_cnt
+                recent_cnt = 0
                 print('')
 
         pool.join()

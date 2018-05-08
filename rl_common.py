@@ -16,7 +16,7 @@ from keras.layers.convolutional import Convolution2D
 
 from keras.backend.tensorflow_backend import set_session
 import tensorflow as tf
-config = tf.ConfigProto()
+config = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)  # to allow a3c running more workers
 config.gpu_options.allow_growth = True
 set_session(tf.Session(config=config))
 
