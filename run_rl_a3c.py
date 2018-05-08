@@ -12,11 +12,12 @@ parser.add_argument('--lookback', default=5, type=int)
 parser.add_argument('--processes', default=4, help='Number of processes that generate experience for agent', dest='processes', type=int)
 parser.add_argument('--lr', default=0.001, help='Learning rate', dest='learning_rate', type=float)
 parser.add_argument('--steps', default=80000000, help='Number of frames to decay learning rate', dest='steps', type=int)
-parser.add_argument('--batch_size', default=32, help='Batch size to use during training', dest='batch_size', type=int)
+parser.add_argument('--batch_size', default=20, help='Batch size to use during training', dest='batch_size', type=int)
 parser.add_argument('--swap_freq', default=10, help='Number of frames before swapping network weights', dest='swap_freq', type=int)
 parser.add_argument('--checkpoint', default=0, help='Frame to resume training', dest='checkpoint', type=int)
-parser.add_argument('--save_freq', default=1000, help='Number of frames before saving weights', dest='save_freq', type=int)
+parser.add_argument('--save_freq', default=25000, help='Number of frames before saving weights', dest='save_freq', type=int)
 parser.add_argument('--queue_size', default=256, help='Size of queue holding agent experience', dest='queue_size', type=int)
+parser.add_argument('--n_step', default=5, help='Number of steps', dest='n_step', type=int)
 parser.add_argument('--beta', default=0.01, dest='beta', type=float)
 # -----
 args = parser.parse_args()
@@ -39,18 +40,17 @@ def build_network(input_shape, output_shape):
     value_network = Model(inputs=state, outputs=value)
     policy_network = Model(inputs=state, outputs=policy)
 
-    reward = Input(shape=(1,))
-    advantage = reward - value
-    train_network = Model(inputs=[state, reward], outputs=[value, policy])
+    adventage = Input(shape=(1,))
+    train_network = Model(inputs=[state, adventage], outputs=[value, policy])
 
-    return value_network, policy_network, train_network, advantage, reward
+    return value_network, policy_network, train_network, adventage
 
 
-def policy_loss(advantage, beta=0.01):
+def policy_loss(adventage=0., beta=0.01):
     from keras import backend as K
 
     def loss(y_true, y_pred):
-        return -K.sum(K.log(K.sum(y_true * y_pred, axis=-1) + K.epsilon()) * K.flatten(advantage)) + \
+        return -K.sum(K.log(K.sum(y_true * y_pred, axis=-1) + K.epsilon()) * K.flatten(adventage)) + \
                beta * K.sum(y_pred * K.log(y_pred + K.epsilon()))
 
     return loss
@@ -77,10 +77,9 @@ class LearningAgent(object):
         self.observation_shape = (self.lookback+1, self.state_size)
         self.batch_size = batch_size
 
-        value_net, policy_net, train_net, advantage, reward = build_network(self.observation_shape, self.action_size)
-        self.train_net = train_net
+        _, _, self.train_net, adventage = build_network(self.observation_shape, self.action_size)
         self.train_net.compile(optimizer=RMSprop(epsilon=0.1, rho=0.99),
-                               loss=[value_loss(), policy_loss(advantage, args.beta)])
+                               loss=[value_loss(), policy_loss(adventage, args.beta)])
 
         self.swap_freq = swap_freq
         self.swap_counter = self.swap_freq
@@ -91,13 +90,17 @@ class LearningAgent(object):
     def learn(self, last_observations, actions, rewards, learning_rate=0.001):
         import keras.backend as K
         K.set_value(self.train_net.optimizer.lr, learning_rate)
-        self.counter += 1
+        frames = 1
+        self.counter += frames
+        # -----
+        values, policy = self.train_net.predict([last_observations, self.unroll])
         # -----
         self.targets.fill(0.)
+        adventage = rewards - values.flatten()
         self.targets[self.unroll, actions] = 1.
         # -----
-        loss = self.train_net.train_on_batch([last_observations, rewards], [rewards, self.targets])
-        self.swap_counter -= 1
+        loss = self.train_net.train_on_batch([last_observations, adventage], [rewards, self.targets])
+        self.swap_counter -= frames
         if self.swap_counter < 0:
             self.swap_counter += self.swap_freq
             return True
@@ -127,7 +130,7 @@ def learn_proc(mem_queue, weight_dict):
     # -----
     if checkpoint > 0:
         print(' %5d> Loading weights from file' % (pid,))
-        agent.train_net.load_weights('data/a3c/%d.h5' % (checkpoint,))
+        agent.train_net.load_weights('model-%s-%d.h5' % (args.game, checkpoint,))
         # -----
     print(' %5d> Setting weights in dict' % (pid,))
     weight_dict['update'] = 0
@@ -155,26 +158,29 @@ def learn_proc(mem_queue, weight_dict):
         save_counter -= 1
         if save_counter < 0:
             save_counter += save_freq
-            agent.train_net.save_weights('data/a3c/%d.h5' % (agent.counter,), overwrite=True)
+            agent.train_net.save_weights('data/a3c-%d.h5' % (agent.counter,), overwrite=True)
 
 
 class ActingAgent(object):
-    def __init__(self, lookback, state_size, action_size, discount=0.99):
+    def __init__(self, lookback, state_size, action_size, n_step=8, discount=0.99):
         self.lookback = lookback
         self.state_size = state_size
         self.action_size = action_size
         self.observation_shape = (self.lookback+1, self.state_size)
 
-        value_net, policy_net, train_net, advantage, reward = build_network(self.observation_shape, self.action_size)
-        self.policy_net = policy_net
-        self.load_net = train_net
+        self.value_net, self.policy_net, self.load_net, adv = build_network(self.observation_shape, self.action_size)
+
+        self.value_net.compile(optimizer='rmsprop', loss='mse')
+        self.policy_net.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+        self.load_net.compile(optimizer='rmsprop', loss='mse', loss_weights=[0.5, 1.])  # dummy loss
 
         self.observations = np.zeros(self.observation_shape)
         self.last_observations = np.zeros_like(self.observations)
         # -----
-        self.episode_observations = deque()
-        self.episode_actions = deque()
-        self.episode_rewards = deque()
+        self.n_step_observations = deque(maxlen=n_step)
+        self.n_step_actions = deque(maxlen=n_step)
+        self.n_step_rewards = deque(maxlen=n_step)
+        self.n_step = n_step
         self.discount = discount
         self.counter = 0
 
@@ -184,23 +190,25 @@ class ActingAgent(object):
 
     def reset(self):
         self.counter = 0
-        self.episode_observations.clear()
-        self.episode_actions.clear()
-        self.episode_rewards.clear()
+        self.n_step_observations.clear()
+        self.n_step_actions.clear()
+        self.n_step_rewards.clear()
 
     def sars_data(self, action, reward, observation, terminal, mem_queue):
         self.save_observation(observation)
         # -----
-        self.episode_observations.appendleft(self.last_observations)
-        self.episode_actions.appendleft(action)
-        self.episode_rewards.appendleft(reward)
+        self.n_step_observations.appendleft(self.last_observations)
+        self.n_step_actions.appendleft(action)
+        self.n_step_rewards.appendleft(reward)
         # -----
         self.counter += 1
-        if terminal:
+        if terminal or self.counter >= self.n_step:
             r = 0.
+            if not terminal:
+                r = self.value_net.predict(self.observations[None, ...])[0]
             for i in range(self.counter):
-                r = self.episode_rewards[i] + self.discount * r
-                mem_queue.put((self.episode_observations[i], self.episode_actions[i], r))
+                r = self.n_step_rewards[i] + self.discount * r
+                mem_queue.put((self.n_step_observations[i], self.n_step_actions[i], r))
             self.reset()
 
     def choose_action(self):
@@ -216,10 +224,12 @@ def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
     import os
     from rl_common import Environment
     pid = os.getpid()
+    os.environ['THEANO_FLAGS'] = 'floatX=float32,device=gpu,nvcc.fastmath=True,lib.cnmem=0,' + \
+                                 'compiledir=th_comp_act_' + str(no)
     # -----
     print(' %5d> Process started' % (pid,))
     # -----
-    checkpoint = args.checkpoint
+    frames = 0
     batch_size = args.batch_size
     # -----
     env = Environment(args.lookback)
@@ -227,11 +237,11 @@ def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
     state_size = state.shape[1]
     action_size = env.num_actions
 
-    agent = ActingAgent(args.lookback, state_size, action_size)
+    agent = ActingAgent(args.lookback, state_size, action_size, n_step=args.n_step)
 
-    if checkpoint > 0:
-        agent.load_net.load_weights('data/a3c/%d.h5' % (checkpoint,))
+    if frames > 0:
         print(' %5d> Loaded weights from file' % (pid,))
+        agent.load_net.load_weights('model-%s-%d.h5' % (args.game, frames))
     else:
         import time
         while 'weights' not in weight_dict:
@@ -239,10 +249,14 @@ def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
         agent.load_net.set_weights(weight_dict['weights'])
         print(' %5d> Loaded weights from dict' % (pid,))
 
+    best_score = -1
+    avg_score = 0
+
     last_update = 0
     while True:
         done = False
         episode_reward = 0
+        op_last, op_count = 0, 0
         observation = env.new_episode()
         agent.init_episode(observation)
 
@@ -255,6 +269,12 @@ def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
             # -----
             agent.sars_data(action, reward, observation, done, mem_queue)
             # -----
+            op_count = 0 if op_last != action else op_count + 1
+            done = done or op_count >= 100
+            op_last = action
+            # -----
+            # if frames % 2000 == 0:
+            #     print('\n %5d> Best: %.6f; Avg: %.6f' % (pid, best_score, avg_score))
             if frames % batch_size == 0:
                 update = weight_dict.get('update', 0)
                 if update > last_update:
@@ -263,6 +283,8 @@ def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
                     agent.load_net.set_weights(weight_dict['weights'])
         # -----
         episode_reward_queue.put(episode_reward)
+        best_score = max(best_score, episode_reward)
+        avg_score = avg_score * 0.99 + episode_reward * 0.01
 
 
 def init_worker():
