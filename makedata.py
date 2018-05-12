@@ -16,6 +16,14 @@ def np_divide(a, b):
     return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
 
 
+def divide(a, b):
+    return a / b if b else 0
+
+
+def datetime_to_timestamp(d):
+    return time.mktime(d.timetuple())
+
+
 def np_log(x):
     return np.log(x) if x != 0 else 0
 
@@ -127,6 +135,8 @@ def run_make_features(db):
     with shelve.open('data/problem_features.shelf') as shelf:
         pf = shelf['pf']
     num_tags = len(next(iter(pf.values()))['pf_tags'])
+    num_problems = len(pf)
+    pid2idx = {x: i for i, x in enumerate(sorted(pf.keys()))}
 
     cur = get_cur(db)
     cur.execute('SELECT COUNT(*) as count FROM records WHERE language=%s', ('C++', ))
@@ -138,13 +148,31 @@ def run_make_features(db):
         uf_ac_rate=np.empty(cnt, dtype=np.float32),
         uf_tag_num_submit=np.empty((cnt, num_tags), dtype=np.int16),
         uf_tag_ac_rate=np.empty((cnt, num_tags), dtype=np.float32),
+        uf_num_ac_problem=np.empty(cnt, dtype=np.int16),
+        uf_tag_num_ac_problem=np.empty((cnt, num_tags), dtype=np.int16),
+        uf_num_one_ac=np.empty(cnt, dtype=np.int16),
+        uf_one_ac_rate=np.empty(cnt, dtype=np.float32),
+        uf_tag_num_one_ac=np.empty((cnt, num_tags), dtype=np.int16),
+        uf_tag_one_ac_rate=np.empty((cnt, num_tags), dtype=np.float32),
+        uf_avg_lines=np.empty(cnt, dtype=np.float32),
+        uf_tag_avg_lines=np.empty((cnt, num_tags), dtype=np.float32),
+        uf_avg_bytes=np.empty(cnt, dtype=np.float32),
+        uf_tag_avg_bytes=np.empty((cnt, num_tags), dtype=np.float32),
+        uf_avg_score=np.empty(cnt, dtype=np.float32),
+        uf_tag_avg_score=np.empty((cnt, num_tags), dtype=np.float32),
+        uf_avg_submit_interval=np.empty(cnt, dtype=np.float32),
+        uf_tag_avg_submit_interval=np.empty((cnt, num_tags), dtype=np.float32),
+        mf_is_first_attempt=np.empty(cnt, dtype=np.bool_),
+        mf_has_ac=np.empty(cnt, dtype=np.bool_),
+        mf_num_attempt=np.empty(cnt, dtype=np.int16),
+        mf_avg_submit_interval=np.empty(cnt, dtype=np.float32),
         problem_id=np.empty(cnt, dtype=np.int16),
         user_id=np.empty(cnt, dtype=np.int16),
         label=np.empty(cnt, dtype=np.bool_)
     )
 
     cur = get_cur(db, named=True)
-    cur.execute('SELECT owner, problem_id, result FROM records WHERE language=%s ORDER BY id', ('C++', ))
+    cur.execute('SELECT owner, problem_id, result, submit_datetime, judge_message, submit_code FROM records WHERE language=%s ORDER BY id', ('C++', ))
     cnt_rows = 0
     users = {}
     for record in tqdm(cur, total=cnt):
@@ -155,29 +183,92 @@ def run_make_features(db):
             u = users[record['owner']] = dict(
                 num_submit=0,
                 num_ac=0,
-                num_tag_submit=np.zeros(num_tags, np.int32),
-                num_tag_ac=np.zeros(num_tags, np.int32),
+                tag_num_submit=np.zeros(num_tags, dtype=np.float32),
+                tag_num_ac=np.zeros(num_tags, dtype=np.float32),
+                tag_num_ac_problem=np.zeros(num_tags, dtype=np.float32),
+                num_one_ac=0,
+                tag_num_one_ac=np.zeros(num_tags, dtype=np.float32),
+                sum_lines=0.,
+                tag_sum_lines=np.zeros(num_tags, dtype=np.float32),
+                sum_bytes=0.,
+                tag_sum_bytes=np.zeros(num_tags, dtype=np.float32),
+                sum_score=0.,
+                tag_sum_score=np.zeros(num_tags, dtype=np.float32),
+                last_submit=None,
+                sum_submit_interval=0.,
+                tag_last_submit=np.zeros(num_tags, dtype=np.float32),
+                tag_sum_submit_interval=np.zeros(num_tags, dtype=np.float32),
+                problem_sum_submit_interval=np.zeros(num_problems, np.float32),
+                problem_last_submit=np.zeros(num_problems, np.float32),
+                problem_has_ac=np.zeros(num_problems, dtype=np.bool_),
+                problem_num_attempt=np.zeros(num_problems, dtype=np.int16),
                 user_id=len(users)
             )
         problem_id = record['problem_id']
         p = pf.get(problem_id, None)
         if p is None:
             continue  # problem not exist
+        pid = pid2idx[problem_id]
+        problem_tags_idx = np.flatnonzero(p['pf_tags'])
+        testcases = parse_judge_message(record['judge_message'])
+        score = sum(map(lambda x: x[0] == 'Accepted', testcases)) / len(testcases)
+        code_lines = len(record['submit_code'].splitlines())
+        code_bytes = len(record['submit_code'])
+        submit_time = datetime_to_timestamp(record['submit_datetime']) / 60.
 
         f['user_id'][cnt_rows] = u['user_id']
         f['problem_id'][cnt_rows] = problem_id
         f['uf_num_submit'][cnt_rows] = u['num_submit']
-        f['uf_ac_rate'][cnt_rows] = u['num_ac'] / u['num_submit'] if u['num_submit'] else 0
-        f['uf_tag_num_submit'][cnt_rows] = u['num_tag_submit']
-        f['uf_tag_ac_rate'][cnt_rows] = np_divide(u['num_tag_ac'].astype(np.float32), u['num_tag_submit'].astype(np.float32))
+        f['uf_ac_rate'][cnt_rows] = divide(u['num_ac'], u['num_submit'])
+        f['uf_tag_num_submit'][cnt_rows] = u['tag_num_submit']
+        f['uf_tag_ac_rate'][cnt_rows] = np_divide(u['tag_num_ac'], u['tag_num_submit'])
+        num_ac_problem = np.sum(u['problem_has_ac'] > 0)
+        f['uf_num_ac_problem'][cnt_rows] = num_ac_problem
+        f['uf_tag_num_ac_problem'][cnt_rows] = u['tag_num_ac_problem']
+        f['uf_num_one_ac'][cnt_rows] = u['num_one_ac']
+        f['uf_one_ac_rate'][cnt_rows] = divide(u['num_one_ac'], num_ac_problem)
+        f['uf_tag_num_one_ac'][cnt_rows] = u['tag_num_one_ac']
+        f['uf_tag_one_ac_rate'][cnt_rows] = np_divide(u['tag_num_one_ac'], u['tag_num_ac_problem'])
+        f['uf_avg_lines'][cnt_rows] = divide(u['sum_lines'], u['num_submit'])
+        f['uf_tag_avg_lines'][cnt_rows] = np_divide(u['tag_sum_lines'], u['tag_num_submit'])
+        f['uf_avg_bytes'][cnt_rows] = divide(u['sum_bytes'], u['num_submit'])
+        f['uf_tag_avg_bytes'][cnt_rows] = np_divide(u['tag_sum_bytes'], u['tag_num_submit'])
+        f['uf_avg_score'][cnt_rows] = divide(u['sum_score'], u['num_submit'])
+        f['uf_tag_avg_score'][cnt_rows] = np_divide(u['tag_sum_score'], u['tag_num_submit'])
+        f['uf_avg_submit_interval'][cnt_rows] = u['sum_submit_interval'] / (u['num_submit']-1) if u['num_submit'] > 1 else 0
+        f['uf_tag_avg_submit_interval'][cnt_rows] = np.divide(u['tag_sum_submit_interval'], u['tag_num_submit']-1, out=np.zeros_like(u['tag_sum_submit_interval']), where=u['tag_num_submit'] > 1)
+        f['mf_is_first_attempt'][cnt_rows] = u['problem_num_attempt'][pid] == 0
+        f['mf_has_ac'][cnt_rows] = u['problem_has_ac'][pid]
+        f['mf_num_attempt'][cnt_rows] = u['problem_num_attempt'][pid]
+        f['mf_avg_submit_interval'][cnt_rows] = u['problem_sum_submit_interval'][pid] / (u['problem_num_attempt'][pid]-1) if u['problem_num_attempt'][pid] > 1 else 0
+
         if record['result'] == 'Accepted':
             f['label'][cnt_rows] = 1
             u['num_ac'] += 1
-            u['num_tag_ac'] += p['pf_tags']
+            u['tag_num_ac'] += p['pf_tags']
+            if not u['problem_has_ac'][pid]:
+                u['problem_has_ac'][pid] = True
+                u['tag_num_ac_problem'] += p['pf_tags']
+                if u['problem_num_attempt'][pid] == 0:
+                    u['num_one_ac'] += 1
+                    u['tag_num_one_ac'] += p['pf_tags']
         else:
             f['label'][cnt_rows] = 0
         u['num_submit'] += 1
-        u['num_tag_submit'] += p['pf_tags']
+        u['tag_num_submit'] += p['pf_tags']
+        u['sum_lines'] += code_lines
+        u['tag_sum_lines'] += code_lines * p['pf_tags']
+        u['sum_bytes'] += code_bytes
+        u['tag_sum_bytes'] += code_bytes * p['pf_tags']
+        u['sum_score'] += score
+        u['tag_sum_score'] += score * p['pf_tags']
+        u['sum_submit_interval'] += submit_time - u['last_submit'] if u['last_submit'] else 0
+        u['tag_sum_submit_interval'] += (submit_time - u['tag_last_submit']) * (u['tag_last_submit'] > 0) * p['pf_tags']
+        u['problem_sum_submit_interval'] += submit_time - u['problem_last_submit'][pid]
+        u['last_submit'] = submit_time
+        u['tag_last_submit'][problem_tags_idx] = submit_time
+        u['problem_last_submit'][pid] = submit_time
+        u['problem_num_attempt'][pid] += 1
         cnt_rows += 1
     for k, v in f.items():
         f[k] = v[:cnt_rows]
@@ -192,6 +283,24 @@ def run_makedata_from_features():
         'uf_ac_rate',
         'uf_tag_num_submit',
         'uf_tag_ac_rate',
+        # 'uf_num_ac_problem',
+        # 'uf_tag_num_ac_problem',
+        # 'uf_num_one_ac',
+        # 'uf_one_ac_rate',
+        # 'uf_tag_num_one_ac',
+        # 'uf_tag_one_ac_rate',
+        # 'uf_avg_lines',
+        # 'uf_tag_avg_lines',
+        # 'uf_avg_bytes',
+        # 'uf_tag_avg_bytes',
+        # 'uf_avg_score',
+        # 'uf_tag_avg_score',
+        # 'uf_avg_submit_interval',
+        # 'uf_tag_avg_submit_interval',
+        # 'mf_is_first_attempt',
+        # 'mf_has_ac',
+        # 'mf_num_attempt',
+        # 'mf_avg_submit_interval',
         'pf_num_submit',
         'pf_ac_rate',
         'pf_avg_lines',
@@ -209,14 +318,13 @@ def run_makedata_from_features():
     num_tags = len(sample_pf['pf_tags'])
     with np.load('data/features.npz') as data:
         f = dict(
-            uf_num_submit=data['uf_num_submit'],
-            uf_ac_rate=data['uf_ac_rate'],
-            uf_tag_num_submit=data['uf_tag_num_submit'],
-            uf_tag_ac_rate=data['uf_tag_ac_rate'],
             problem_id=data['problem_id'],
             user_id=data['user_id'],
             label=data['label'],
         )
+        for k, v in data.items():
+            if k[:3] in ['uf_', 'mf_']:
+                f[k] = v
         num_rows = int(data['num_rows'])
         num_users = int(data['num_users'])
 
