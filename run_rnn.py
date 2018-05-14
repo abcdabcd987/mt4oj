@@ -65,6 +65,10 @@ class InputSequence(Sequence):
         self._random_state = np.random.RandomState(1234)
         self.on_epoch_end()
 
+    @property
+    def dim_features(self):
+        return self._data.data_x.shape[1]
+
     def on_epoch_end(self):
         self._perm = self._random_state.permutation(self._total_rows)  # shuffle
 
@@ -75,7 +79,7 @@ class InputSequence(Sequence):
         start_idx = batch_idx * self._batch_size
         end_idx = min((batch_idx+1) * self._batch_size, self._total_rows)
         ret_rows = end_idx - start_idx
-        batch_x = np.zeros((ret_rows, self._lookback+1, self._data.data_x.shape[1]), dtype=np.float32)
+        batch_x = np.zeros((ret_rows, self._lookback+1, self.dim_features), dtype=np.float32)
         batch_y = np.empty(ret_rows, dtype=np.int8)
         user_offsets = self._data.train_user_offsets if self._is_train else self._data.test_user_offsets
         user_rows = self._data.train_user_rows if self._is_train else self._data.test_user_rows
@@ -84,7 +88,7 @@ class InputSequence(Sequence):
             user_row_offset = idx - user_offsets[user_id-1] if user_id != 0 else idx
             for t in range(self._lookback, -1, -1):
                 if user_row_offset-t >= 0:
-                    row = user_rows[user_id][user_row_offset]
+                    row = user_rows[user_id][user_row_offset-t]
                     batch_x[i, t] = self._data.data_x[row]
                 elif not self._is_train:
                     train_rows = self._data.train_user_rows[user_id]
@@ -99,7 +103,7 @@ class InputSequence(Sequence):
 
 def run_train_test():
     batch_size = 256
-    lookback = 5
+    lookback = 20
 
     print('preparing data...')
     data = InputSequenceSharedData(frac_train=0.8)

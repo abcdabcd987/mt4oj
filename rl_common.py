@@ -136,7 +136,7 @@ class Environment:
         user_row_offset = idx - self._user_offsets[user_id-1] if user_id != 0 else idx
         for t in range(self._lookback, -1, -1):
             if user_row_offset-t >= 0:
-                row = self._user_rows[user_id][user_row_offset]
+                row = self._user_rows[user_id][user_row_offset-t]
                 self._cur_user_features[t] = self._data_x[row, :self._num_user_features]
                 self._cur_problem_ids[t] = self._data_problem_id[row]
         is_accepted = bool(self._data_y[row])
