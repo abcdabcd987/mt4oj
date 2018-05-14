@@ -47,8 +47,8 @@ class Environment:
         self._sorted_problem_ids = sorted(self._pf.keys())
         self._map_idx_problem_id = dict(enumerate(self._sorted_problem_ids))
 
-        logging.info('transforming data')
-        self._scalar = MaxAbsScaler().fit(self._data_x)
+        logging.info('fitting feature scaler')
+        self._max_abs = np.abs(self._data_x).max(axis=0)
 
         logging.info('loadding rnn model')
         self._rnn = load_model('data/rnn/model.h5')
@@ -106,18 +106,22 @@ class Environment:
 
 
     def _calc_student_score(self):
-        x_lookback = np.zeros((self._lookback, self._data_x.shape[1]), dtype=np.float32)
+        x_lookback = np.zeros((self._lookback, self._data_x.shape[1]+1), dtype=np.float32)
         x_lookback[:, :self._num_user_features] = self._cur_user_features[1:]
         for t in range(self._lookback):
-            problem_id = self._cur_problem_ids[t]
+            problem_id = self._cur_problem_ids[self._lookback-1-t]
             if problem_id is not None:
-                x_lookback[t, self._num_user_features:] = self._get_problem_features(problem_id)
+                x_lookback[self._lookback-1-t, self._num_user_features:-1] = self._get_problem_features(problem_id)
+                x_lookback[self._lookback-1-t, -1] = float(self._cur_is_previous_accepted[self._lookback-1-t])
+            x_lookback[self._lookback-1-t, :-1] /= self._max_abs
 
-        x = np.empty((self._num_problems, self._lookback+1, self._data_x.shape[1]), dtype=np.float32)
+        x = np.empty((self._num_problems, self._lookback+1, self._data_x.shape[1]+1), dtype=np.float32)
         for i, problem_id in enumerate(self._sorted_problem_ids):
-            x[i, 0, :self._num_user_features] = self._cur_next_user_features
-            x[i, 0, self._num_user_features:] = self._get_problem_features(problem_id)
-            x[i, 1:] = x_lookback
+            x[i, -1, :self._num_user_features] = self._cur_next_user_features
+            x[i, -1, self._num_user_features:-1] = self._get_problem_features(problem_id)
+            x[i, -1, :-1] /= self._max_abs
+            x[i, -1, -1] = float(self._cur_is_previous_accepted[self._lookback])
+            x[i, :-1] = x_lookback
 
         self._cur_prob = self._rnn.predict(x).squeeze()
         return np.average(self._cur_prob)
@@ -131,16 +135,20 @@ class Environment:
     def new_episode(self):
         self._cur_user_features = np.zeros((self._lookback+1, self._num_user_features), dtype=np.float32)
         self._cur_problem_ids = [None] * (self._lookback+1)
+        self._cur_is_previous_accepted = [False] * (self._lookback+1)
         idx = random.randrange(self._data_num_rows)
         user_id = bisect.bisect_right(self._user_offsets, idx)
         user_row_offset = idx - self._user_offsets[user_id-1] if user_id != 0 else idx
+
+        row = self._user_rows[user_id][user_row_offset-self._lookback-1] if user_row_offset-self._lookback-1 >= 0 else None
         for t in range(self._lookback, -1, -1):
             if user_row_offset-t >= 0:
+                self._cur_is_previous_accepted[self._lookback-t] = bool(self._data_y[row]) if row is not None else False
                 row = self._user_rows[user_id][user_row_offset-t]
-                self._cur_user_features[t] = self._data_x[row, :self._num_user_features]
-                self._cur_problem_ids[t] = self._data_problem_id[row]
+                self._cur_user_features[self._lookback-t] = self._data_x[row, :self._num_user_features]
+                self._cur_problem_ids[self._lookback-t] = self._data_problem_id[row]
         is_accepted = bool(self._data_y[row])
-        self._cur_next_user_features = self._calc_next_user_features(self._cur_user_features[0], self._cur_problem_ids[0], is_accepted)
+        self._cur_next_user_features = self._calc_next_user_features(self._cur_user_features[-1], self._cur_problem_ids[-1], is_accepted)
 
         self._cur_score = self._calc_student_score()
         self._cur_num_recommend = 0
@@ -161,12 +169,12 @@ class Environment:
         for i in range(num_tries):
             is_accepted = i+1 == num_tries
             cur_user_features = np.empty((self._lookback+1, self._num_user_features), dtype=np.float32)
-            cur_user_features[0] = self._cur_next_user_features
-            cur_user_features[1:] = self._cur_user_features[:-1]
-            cur_problem_ids = [problem_id] + self._cur_problem_ids[:-1]
+            cur_user_features[-1] = self._cur_next_user_features
+            cur_user_features[:-1] = self._cur_user_features[1:]
+            cur_problem_ids = self._cur_problem_ids[:-1] + [problem_id]
             self._cur_user_features = cur_user_features
             self._cur_problem_ids = cur_problem_ids
-            self._cur_next_user_features = self._calc_next_user_features(self._cur_user_features[0], self._cur_problem_ids[0], is_accepted)
+            self._cur_next_user_features = self._calc_next_user_features(self._cur_user_features[-1], self._cur_problem_ids[-1], is_accepted)
 
         # calc reward
         last_score = self._cur_score
@@ -178,7 +186,7 @@ class Environment:
 
 
 def test_env():
-    env = Environment()
+    env = Environment(lookback=5)
     num_actions = env.num_actions
     for _ in range(2):
         state = env.new_episode()
@@ -192,4 +200,7 @@ def test_env():
             print('sum_reward', sum_reward)
 
 logging.getLogger().setLevel(logging.DEBUG)
+
+if __name__ == '__main__':
+    test_env()
 
