@@ -67,7 +67,7 @@ class InputSequence(Sequence):
 
     @property
     def dim_features(self):
-        return self._data.data_x.shape[1]
+        return self._data.data_x.shape[1] + 1
 
     def on_epoch_end(self):
         self._perm = self._random_state.permutation(self._total_rows)  # shuffle
@@ -83,27 +83,39 @@ class InputSequence(Sequence):
         batch_y = np.empty(ret_rows, dtype=np.int8)
         user_offsets = self._data.train_user_offsets if self._is_train else self._data.test_user_offsets
         user_rows = self._data.train_user_rows if self._is_train else self._data.test_user_rows
+
+        def get_row(user_row_offset, t):
+            if user_row_offset-t >= 0:
+                row = user_rows[user_id][user_row_offset-t]
+                return row
+            if self._is_train:
+                train_rows = self._data.train_user_rows[user_id]
+                row_offset = len(train_rows) + (user_row_offset - t)
+                if row_offset >= 0:
+                    row = train_rows[row_offset]
+                    return row
+            return None  # otherwise (the very begining of a user), just fill 0
+
         for i, idx in enumerate(self._perm[start_idx:end_idx]):
             user_id = bisect.bisect_right(user_offsets, idx)
             user_row_offset = idx - user_offsets[user_id-1] if user_id != 0 else idx
+            row = get_row(user_row_offset, self._lookback+1)
             for t in range(self._lookback, -1, -1):
-                if user_row_offset-t >= 0:
-                    row = user_rows[user_id][user_row_offset-t]
-                    batch_x[i, t] = self._data.data_x[row]
-                elif not self._is_train:
-                    train_rows = self._data.train_user_rows[user_id]
-                    row_offset = len(train_rows) + (user_row_offset - t)
-                    if row_offset >= 0:
-                        row = train_rows[row_offset]
-                        batch_x[i, t] = self._data.data_x[row]
-                # otherwise (the very begining of a user), just fill 0
+                # label of previous time step
+                if row is not None:
+                    batch_x[i, self._lookback-t, -1] = self._data.data_y[row]
+                # features of current time step
+                row = get_row(user_row_offset, t)
+                if row is not None:
+                    batch_x[i, self._lookback-t, :-1] = self._data.data_x[row]
+            # label of current time step
             batch_y[i] = self._data.data_y[row]
         return batch_x, batch_y
 
 
 def run_train_test():
     batch_size = 256
-    lookback = 20
+    lookback = 5
 
     print('preparing data...')
     data = InputSequenceSharedData(frac_train=0.8)
@@ -123,29 +135,35 @@ def run_train_test():
     # keras: build graph
     print('building graph...')
     model = Sequential()
-    model.add(LSTM(10, input_shape=(lookback+1, data.data_x.shape[1])))
+    model.add(LSTM(10, input_shape=(lookback+1, train_input_seq.dim_features)))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.summary()
 
     # keras: train model
     print('training...')
-    for epoch in range(1, 6):
+    best_auc = 0
+    for epoch in range(1, 10):
         model.fit_generator(train_input_seq,
             epochs=1, verbose=1,
             use_multiprocessing=True, workers=2,
             shuffle=False,  # InputSequence handles shuffling
         )
-        model.save('data/rnn/model.h5')
-        shutil.copy('data/rnn/model.h5', 'data/rnn/model-epoch-{}.h5'.format(epoch))
+        filename = 'data/rnn/model-epoch-{}.h5'.format(epoch)
+        model.save(filename)
 
         # validate
         y_pred_proba = model.predict(x_test).squeeze()
         y_pred = y_pred_proba.copy()
         y_pred[y_pred > 0.5] = 1
         y_pred[y_pred <= 0.5] = 0
-        print('epoch', epoch, 'acc:', accuracy_score(y_test, y_pred))
-        print('epoch', epoch, 'auc:', roc_auc_score(y_test, y_pred_proba))
+        acc = accuracy_score(y_test, y_pred)
+        auc = roc_auc_score(y_test, y_pred_proba)
+        print('epoch', epoch, 'acc:', acc)
+        print('epoch', epoch, 'auc:', auc)
+        if auc > best_auc:
+            best_auc = auc
+            shutil.copy(filename, 'data/rnn/model.h5')
 
     # validate
     print('validating...')
