@@ -2,6 +2,7 @@
 
 from multiprocessing import *
 from collections import deque
+from datetime import datetime
 import numpy as np
 import argparse
 import traceback
@@ -134,7 +135,7 @@ def learn_proc(mem_queue, weight_dict, no):
     # -----
     if checkpoint > 0:
         print(' %5d> Loading weights from file' % (pid,))
-        agent.train_net.load_weights('model-%s-%d.h5' % (args.game, checkpoint,))
+        agent.train_net.load_weights('data/a3c/%d.h5' % (args.game, checkpoint,))
         # -----
     print(' %5d> Setting weights in dict' % (pid,))
     weight_dict['update'] = 0
@@ -162,7 +163,7 @@ def learn_proc(mem_queue, weight_dict, no):
         save_counter -= 1
         if save_counter < 0:
             save_counter += save_freq
-            agent.train_net.save_weights('data/a3c-%d.h5' % (agent.counter,), overwrite=True)
+            agent.train_net.save_weights('data/a3c/%d.h5' % (agent.counter,), overwrite=True)
 
 
 class ActingAgent(object):
@@ -246,7 +247,7 @@ def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
 
     if frames > 0:
         print(' %5d> Loaded weights from file' % (pid,))
-        agent.load_net.load_weights('model-%s-%d.h5' % (args.game, frames))
+        agent.load_net.load_weights('data/a3c/%d.h5' % (args.game, frames))
     else:
         import time
         while 'weights' not in weight_dict:
@@ -321,6 +322,9 @@ class LogExceptions(object):
 
 
 def main():
+    today = datetime.now().strftime('%Y%m%d-%H%M%S')
+    filename = os.path.join('logs', 'a3c-{}.log'.format(today))
+    logf = open(filename, 'w')
     manager = Manager()
     weight_dict = manager.dict()
     mem_queue = manager.Queue(args.queue_size)
@@ -364,9 +368,12 @@ def main():
                 recent_length = recent_cnt
                 recent_cnt = 0
                 print('')
+            logf.write('{:.3f}\t{:+.16f}\n'.format(now - start_time, reward))
+            logf.flush()
 
         pool.join()
     except KeyboardInterrupt:
+        logf.close()
         pool.terminate()
         pool.join()
 
