@@ -460,19 +460,19 @@
     \def\arraystretch{1.1}
     \begin{tabular}{>{\begin{CJKfilltwosides}{4\ccwd}}r<{\end{CJKfilltwosides}}@{：}l}
       \ifsjtu@review
-        \sjtu@label@author        & \underline{\makebox[180pt]{}} \\
-        \sjtu@label@studentnumber & \underline{\makebox[180pt]{}} \\
+        \sjtu@label@author        & \underline{\makebox[250pt]{}} \\
+        \sjtu@label@studentnumber & \underline{\makebox[250pt]{}} \\
       \else
-        \sjtu@label@author        & \underline{\makebox[180pt]{\sjtu@value@author}} \\
-        \sjtu@label@studentnumber & \underline{\makebox[180pt]{\sjtu@value@studentnumber}} \\
+        \sjtu@label@author        & \underline{\makebox[250pt]{\sjtu@value@author}} \\
+        \sjtu@label@studentnumber & \underline{\makebox[250pt]{\sjtu@value@studentnumber}} \\
       \fi
-        \sjtu@label@major         & \underline{\makebox[180pt]{\sjtu@value@major}} \\
+        \sjtu@label@major         & \underline{\makebox[250pt]{\sjtu@value@major}} \\
       \ifsjtu@review
-        \sjtu@label@advisor       & \underline{\makebox[180pt]{}} \\
+        \sjtu@label@advisor       & \underline{\makebox[250pt]{}} \\
       \else
-        \sjtu@label@advisor       & \underline{\makebox[180pt]{\sjtu@value@advisor}} \\
+        \sjtu@label@advisor       & \underline{\makebox[250pt]{\sjtu@value@advisor}} \\
       \fi
-        \sjtu@label@institute     & \underline{\makebox[180pt]{\sjtu@value@institute}}
+        \sjtu@label@institute     & \underline{\makebox[250pt]{\sjtu@value@institute}}
     \end{tabular}}
   \end{center}
   \cleardoublepage
