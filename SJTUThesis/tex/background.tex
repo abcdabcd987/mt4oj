@@ -128,11 +128,153 @@
             The grader might not be able to find such subtle an error.
             % TODO: correct & incorrect floyd code
 
-        \subsubsection{More Manpower}
+        \subsubsection{Low Scalability}
+
+            One of the hot topics computer scientists deals with is scalability.
+            Ironically, manually grading programming assignments doesn't scale well.
+            The increasing in either students or problems significantly add burden to graders.
+            Apparently the total number of problems the professor can assign is proportional to
+            the number of teaching assistants, and is inversely proportional to the number of students.
+            Although the department could employ more teaching assistants to avoid the intolerable grading time,
+            the inconsistency caused by different graders would become more and more disturbing.
 
         \subsubsection{Long Feedback Time}
 
+            Manual grading takes graders a long time to justify the correctness of students' solutions,
+            in the mean time, the feedback time of students is even longer.
+            Counting the time starting from the moment a student finishes the solution to the moment
+            the student knows about the verdict, it usually takes days if not weeks to have the feedback.
+            Days after writing the code, the student might need to spend extra time to recover
+            the thinking process when he or she was solving the problem.
+            Sometimes, students just fail to go back to the mindset then, and thus the lessons learned from
+            the assignment mistakes would be discounted.
+
     \subsection{Automatic Grading}
+
+        The invention of online judges brought the idea of automatic grading, that is,
+        letting a computer program to determine the correctness of programming assignments.
+        In order to transit from manual grading to automatic grading,
+        teachers need to formalize the grading process in a way that a program grader are easy to handle,
+        otherwise computer scientists need to build a strong artificial intelligence
+        just to grade some homework and exams, which is not yet possible for now and wastes its talent.
+
+        \subsubsection{Grading Process}
+
+            Instead of writing code on pieces of paper, students need to write code on a computer
+            and hand in the source code as it is to the online judge.
+            In fact, submitting the source code makes more sense than handing in pieces of paper.
+            Students can avoid compilation errors by compiling the source code,
+            which would be a trivial mistake but often caught in hand-written code.
+            Further more, students can convenience themselves the code is correct by running the code
+            over several inputs and they can even debug it if they find something not working as expected.
+
+            To simplify programming tasks, avoiding fancy human-computer interaction
+            and complicated input/output operations, online judges require the problem author and students
+            to behave within some conventions:
+
+            \begin{itemize}
+                \item The solution code should compile and run (or can be interpreted for interpreted languages).
+                \item The program should read data from the \emph{standard input}
+                      and write answers to the \emph{standard output}.
+                \item The program should not have any other input/output operations, such as writing a file,
+                      connecting to the network, and so on.
+                \item The program should terminate within certain \emph{time limit} and \emph{memory limit}.
+                \item The program should not have any malicious behaviors.
+                \item The problem author should specify the \emph{input format} and the \emph{output format}.
+                \item The problem author should specify \emph{the range of input data}.
+                \item The problem author should specify the time limit and memory limit.
+                \item The problem author should make several \emph{testcases} along with the problem.
+                      Each testcase consist of input data and output data.
+                      Output data is the answer as if produced by a correct program.
+                      The input and output data should be consistent with the input and output format
+                      specified in the problem description.
+            \end{itemize}
+
+            The problem author can give several sample testcases in the problem description
+            to help students understand the problem setting and the input/output format.
+            Students can also use it to verify if there is obvious flaw in the solution.
+            However, there should be a set of secret testcases that students cannot access.
+            Otherwise, the students merely need to write a program that prints the corresponding
+            standard answer according to the input.
+
+            Students' solution presumes to be correct if it can pass all testcases.
+            If the program passes only part of the testcases, the online judge can also gives partial credits.
+            With this convention in mind, the grading process becomes programmatic.
+
+            \begin{enumerate}
+                \item Students submit the source code to the online judge.
+                \item The online judge compiles the source code (if it is a compiled language).
+                \item The online judge runs the program with the input the problem author designed.
+                \item The online judge checks if the program terminates within the specified
+                      time and memory constraints and does not have any malicious behaviors.
+                \item The online judge compares the program output to the corresponding output
+                      the problem author designed.
+                \item The above three steps repeats until all of the testcases have been examined.
+                \item The online judge either claims the solution to be correct if the program
+                      has passed all testcases or gives partial credits.
+            \end{enumerate}
+
+            A flawed solution might be able to pass one or two testcases, but the chance of
+            passing all testcases is low enough if the testcases was carefully designed.
+
+            This kind of automatic grading process can also detect incorrect algorithmic complexity.
+            For example, it is easy for an $O(n\log n)$ solution to terminate within one second
+            on a $n=10,000$ input, but not likely for an $O(n^3)$ one.
+            The same idea applies to space complexity due to the memory limit
+            specified in the problem description.
+
+        \subsubsection{Advantages}
+
+            The automatic grading process addresses the flaws in manual grading.
+
+            By definition of correctness, any solution that solves a problem correctly
+            is able to pass all the testcases.
+
+            Automatic grading is at least dozens of times faster than manual grading.
+            Assuming the time limit for each testcase is one second and there are ten testcases in total,
+            the maximum run time for a student's solution would be ten seconds.
+            There are some extra times costs by the automatic grader, including
+            compiling the student's solution, comparing the program output to the standard answer,
+            and some other necessary operations of the automatic grader.
+            Therefore, in the worst case,
+            the grading process can be done in a little bit more than ten seconds in total.
+            Typically, the whole process should finish in seconds,
+            since a correct solution is expected to run significantly faster than the time limit.
+
+            With such fast grading speed, students can get the feedback almost instantly.
+            Hence, they are quite clear about the code they wrote just now, and thus easier to 
+            reason about the mistakes if the online judge did not give them full credits.
+
+            Notice that the automatic grading process does not require
+            the teacher or any teaching assistants presenting
+            once the problem author has published the problem.
+            The interaction only happens between students and the online judge.
+            Without human being involving in the grading process,
+            lots of uncertainties are eliminated,
+            because the execution of the grading program is determined.
+            As long as the machine running the automatic grader has sufficient computing power,
+            the running result will be the same.
+            The maintainer of the online judge simply need to
+            make sure the computer is dedicated for automatic grading.
+            The automatic grading program would not have any `mood', nor does it feel tired.
+            Consequently, it will produce consistent verdicts.
+
+            Clearly, the increase in the number of students and problems does not add burdens to the online judge.
+            It just reduces the idle time of the automatic grader.
+            At the worst case, new submissions start to accumulate and waits in queue.
+            In this case, simply buying more machines and running more automatic graders
+            suffice to keep a short enough waiting time.
+            The costs of new computers is cheaper than paying stipend to teaching assistants,
+            not to mention that lots of departments have spare servers to use.
+
+
+    \subsection{Online Judges}
+
+        \subsubsection{Design of Online Judges}
+
+        \subsubsection{Encouragement in Students' Proactive Participation}
+
+\section{Logistic Regression}
 
 \section{Factorization Machine}
 
