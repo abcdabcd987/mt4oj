@@ -57,9 +57,80 @@
         After students finish the tasks, there need to be some ways to give them feedback, at least,
         tell students whether their solution is correct or not.
         Traditionally, grading programming solutions had no difference from grading calculus homework.
-        And the emerge of online judges decades ago enabled more efficient grading.
+        And the emerge of online judges two decades ago enabled more efficient grading.
         
     \subsection{Manual Grading}
+
+        Before the appearance of online judges, teachers needed to grade programming solutions manually.
+        First, students handed in their solutions.
+        Then, graders (either the professor himself/herself or the teaching assistants)
+        would read the code and give marks based on their professional judgment.
+        Manual grading is still a common practice nowadays in other subjects, such as mathematics and physics.
+        Though widely used, its effectiveness is still affected by several non-controllable factors
+        and has significant drawbacks. \cite{Kurnia2001}
+
+        \subsubsection{Discouragement of Alternative Solutions}
+
+            When the teachers are sketching a problem, they have a standard solution in mind.
+            So when graders are grading students' solutions, they expect the code to be similar to
+            the standard solution that they were told.
+            However, it is likely that there are several alternative solutions to the same problem
+            with the same complexity if not better.
+            For instance, suppose an assignment can reduce to a minimum spanning tree problem
+            and the author expects the Prim algorithm.  % TODO: cite Prim
+            A student might turn in a solution with Kruskral algorithm which is also an algorithm that
+            solves the minimum spanning tree problem.  % TODO: cite Kruskral
+            In this case, if the grader is not aware of Kruskral algorithm, the grader might give a wrong verdict
+            because Kruskral algorithm looks completely different from Prim algorithm, i.e. the standard solution.
+            Notice that this is not the fault of the grader, because the grader might be a teaching assistant
+            who is only expected to be familiar with the standard solution.
+            Neither is this the fault of the problem author, because there can be any number of alternative solutions
+            and the author cannot enumerate them all.
+            Nor should we blame the student.
+            In the contrary, students with alternative solutions should be encouraged.
+
+        \subsubsection{Slow Grading}
+
+            Grading a programming solution can takes a long time.
+            Unlike a solution to mathematics homework in which students will explain their thinking process
+            step by step in natural language,
+            a solution to programming problem is code in some programming language which is designed
+            for machines to compile, instead of letting humans to read.
+            The grader have to read the code carefully in order to understand the solution.
+            Then they need to look into details trying to find potential mistakes.
+            Consequently, the grading process can be very slow.
+
+        \subsubsection{Inconsistency}
+
+            The same solution might have different scores if it is graded by different graders.
+            For example, some graders know more than the standard solutions,
+            and thus justify the alternative solutions.
+
+            Even for the same grader to check the same solution at different times might lead to different results.
+            For instance, at the beginning of grading, the grader might be very patient
+            and carefully reason about each line of code.
+            However, after hours of grading, the grader could feel tired and distracted
+            and might want to finish grading as soon as possible.
+            In this case, the grader might only check if the solution matches some patterns of the standard solution.
+
+            Needless to say, the same solution is likely to have completely different verdicts
+            depending on who the grader is and what status he or she is in.
+
+        \subsubsection{Ignorance of Details Mistakes}
+
+            Because of understanding students' solution costs graders lots of energy,
+            subtle mistakes hidden in details often escape from being found.
+            For example, supposing the standard solution is Floyd algorithm, % TODO: cite
+            the grader might expect students' solutions to have two kinds of patterns:
+            three nested loops and a dynamic programming equation.
+            However, the solution might mixing up the permutation of the three loop variables,
+            which makes the algorithm no longer correct.
+            The grader might not be able to find such subtle an error.
+            % TODO: correct & incorrect floyd code
+
+        \subsubsection{More Manpower}
+
+        \subsubsection{Long Feedback Time}
 
     \subsection{Automatic Grading}
 
