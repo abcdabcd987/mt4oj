@@ -4,7 +4,7 @@
 %%==================================================
 
 % 双面打印
-\documentclass[bachelor, openright, twoside]{sjtuthesis}
+\documentclass[bachelor, openright, twoside, english]{sjtuthesis}
 % \documentclass[bachelor, openany, oneside, submit]{sjtuthesis}
 % \documentclass[master, review]{sjtuthesis}
 % \documentclass[%
@@ -66,6 +66,8 @@
 %% 正文内容
 \pagestyle{main}
 \include{tex/intro}
+\include{tex/background}
+\include{tex/related}
 
 \appendix	% 使用英文字母对附录编号，重新定义附录中的公式、图图表编号样式
 \renewcommand\theequation{\Alph{chapter}--\arabic{equation}}	
