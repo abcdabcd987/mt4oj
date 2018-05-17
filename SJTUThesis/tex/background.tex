@@ -401,6 +401,42 @@
             system administrators might run the automatic grader container inside some virtual machine hypervisor.
             % TODO: diagram of different layers of isolation
 
+        \subsubsection{Contests}
+
+            Contest is an important feature of online judges.
+            Some online judges, like CodeForces, regularly organize contests,
+            attracting thousands of participants of competitive programming competitions.
+
+            A contest consists of a set of problems
+            which are usually kept secret before the contest starts.
+            A typical contest lasts a few hours.
+            Participants can solve the problem set on their own in arbitrary order.
+            There is a scoreboard displaying real-time score of all participants.
+            The scoring rule varies.
+            Most of scoring rules sort the scoreboard by the number of accepted solution.
+            In order to rank among participants who has solved the same number of problems,
+            some rules take the sum of submission time into account, as the second sort key.
+            The ACM-ICPC rule also add extra time penalty to each failure submission.
+            The OI rule values partial credits.
+            The total score is the sum of credits of all problems, ignoring submission time.
+
+            Ranking system is a great stimulation for participants.
+            Online judges with ranking systems update each participants ranking score
+            after the contest has finished.
+            The ranking systems are usually variants of the Elo rating system. % TODO: cite elo, tc, cf
+            It takes two factors into account:
+            the participant's current ranking, and the ranking of other participants.
+            It roughly reflects a participant's level.
+            % TODO: snapshot of cf ranking
+
+            The contest feature can also serve as other purpose.
+            For example, teachers can hold a exam on the online judge
+            and ask students to take the exam on a computer room in a planned time.
+            Another useful variant of the contest feature is homework.
+            Teaching assistants can hand out the problem set on the online judge,
+            set the start and end date (which usually spans days or a few weeks).
+            The scoreboard precisely shows whether a student has finished all the assignments.
+
         \subsubsection{Virtual Judge} % TODO: cite; TODO: diagram of the delegation process
 
             High quality problems span different online judges.
@@ -435,9 +471,38 @@
             The service logic of contest, like submission time period and time penalty, is handled
             by the virtual judge itself.
 
-        \subsubsection{Contests}
-
         \subsubsection{Encouragement in Students' Proactive Participation}
+
+            Once a problem is published on a online judge,
+            it is likely that it will always be there in the future,
+            because it does not make much sense to take down a problem.
+            Therefore, students can see thousands of problems on the online judge.
+            If they are willing to try to solve them,
+            there is nothing to stop them from doing it.
+            They can submit their solutions,
+            and the online judge will tell whether it is correct or not.
+            It will not require any extra manpower to grade the solution.
+            In fact, active participants of competitive programming competitions usually proactively
+            train themselves on online judges.
+            They even take part in regular contests which online judges organizes.
+
+            With thousands of problems available online, comes another issue:
+            students submerged by an overwhelming number of problems usually feel lost
+            if they does not have an experienced teacher to tell them which problems to solve.
+
+            Some online judges try to address this issue by creating lists of problems
+            categorized by the knowledge components that problems need.
+            These lists are usually created by teachers,
+            who themselves create the list in a ad-hoc manner
+            according to their years of teaching experience.
+
+            Although teachers' experience are precious,
+            we must notice that each student is unique.
+            They have different mindsets, different ways to understand knowledge,
+            and different levels of knowing each knowledge components.
+            We expect with the development of artificial intelligence
+            and exploitation of millions of submissions data,
+            online judges can design unique training problem set for each student.
 
 
 \section{Machine Teaching}
