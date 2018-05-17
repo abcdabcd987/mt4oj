@@ -27,7 +27,7 @@
         An $O(n\log n)$ algorithm better scales to a larger input comparing to an $O(n^2)$ algorithm.
         Programming also helps students cultivate thinking skills.
         There are mind sports specially focus on algorithms.
-        For instance, \emph{ACM International Collegiate Programming Contest} (ACM-ICPC) is an annual
+        For instance, ACM International Collegiate Programming Contest (\emph{ACM-ICPC}) is an annual
         competitive programming competition among the universities of world.
         In 2017, 49,935 students from 3,098 universities in 111 countries participated. % TODO: cite (wiki)
         Companies value this kind of thinking skills, as well.
@@ -267,12 +267,92 @@
             The costs of new computers is cheaper than paying stipend to teaching assistants,
             not to mention that lots of departments have spare servers to use.
 
-
     \subsection{Online Judges}
+
+        Due to its overwhelming superiority, universities widely
+        integrate online judges with programming-related courses.
+        There are dozens of popular online judges.
+        Some of them are famous world-wide, such as CodeForces, TopCoder, SPOJ, uVA, and so on. % TODO: cite
+        Online judges can roughly divide into three categories.
+
+        One is maintained by universities, such as POJ, HDU, and so on. % TODO: cite
+        The university's ACM-ICPC participants actively train on these online judges.
+        In addition, these online judges also serve programming courses.
+        Teaching assistants hand out homework assignments and organize exams on online judges.
+
+        Another is maintained by high schools
+        or retired Olympiad in Informatics (\emph{OI}) participants,
+        such as LibreOJ, and so on. % TODO: cite
+        Because most high schools do not teach programming systematically,
+        the only purpose of these kind of online judges is their internal OI training.
+
+        The last category is operated by commercial companies. % TODO: cite; TODO: marong's OJ
+        LeetCode, for example, focus on the interview problems ask by big companies.
+        Users need to pay for the full problem set and solutions with high quality explanations.
+        In China, the market of private tutoring on competitive programming competitions is getting larger.
+        Some commercial companies build online judges, compose series of problems, organize contests,
+        and teach lessons for their paid customers.
+
+        Interestingly, almost all online judges share the same convention mentioned in previous subsection.
+        Different online judges have their own characteristics as well.
 
         \subsubsection{Design of Online Judges}
 
+            Online judges usually have a web interface.
+            The advantage of using a web interface over native graphics interface is that
+            it can easily support different platform.
+            Unlike traditional applications, each operating system has a large share of users of online judges.
+            This might be because Windows, Linux, and macOS are all very popular among programmers.
+            In addition, some of competitive programming competitions encourages the usage of Linux,
+            such as Chinese National Olympiad in Informatics (\emph{NOI}).  % site: NOI Linux article
+            Since all operating systems have web browsers,
+            users do not need to install extra software to use the online judge.
+            Some active participants of ACM-ICPC or OI even use mobile web browsers on their smart phones
+            to read problems on online judges and think about them in their spare time.
+
+            Users need to register an account on the online judge before they can submit their solution to it.
+            Since each solution is tied to an account, online judges can easily show statistics,
+            like which problems the user have solved, which problems the user has tried but not ye solved.
+            Users can design their own training schedule according to these statistics.
+            It also enables computer scientists to create models for users and
+            then uses artificial intelligence to design the training schedule for users.
+
+            Once users submit a solution through the web interface,
+            the online judge keeps the submission in the database,
+            and assign an automatic grader to grade the solution.
+            The result of an submission usually can be the following ones:
+
+            \begin{description}
+                \item[Accepted] The submitted code has passed all the testcases.
+                \item[Partial Credit] The submitted code has passed part of the testcases.
+                \item[Compilation Error] The submitted code has failed to compile.
+                \item[Wrong Answer] The submitted code has produced incorrect answer on some testcases.
+                \item[Runtime Error] The submitted code has exited with non-zero exitcode unexpectedly
+                                     when running some testcases.
+                \item[Time Limit Exceeded] The submitted code has not terminated within the specified time limit
+                                           when running some testcases.
+                \item[Memory Limit Exceeded] The submitted code has tried to allocate more memory than the
+                                             specified memory limit when running some testcases.
+            \end{description}
+
+            In addition to the result, online judges also display two important factors:
+            the total running time and the maximum memory usage,
+            which indicates the performance of a solution.
+
+            Online judges can run multiple automatic graders on several machines or
+            on a machine with multiple processor cores.
+            Previous subsection has described the how a automatic grader works.
+
+            The code automatic graders compile and run is submitted by users from the Internet
+            which is untrusted and can even be malicious.
+            Therefore, the design of online judges must include serious security concerns.
+
+        \subsubsection{Virtual Judge}
+
         \subsubsection{Encouragement in Students' Proactive Participation}
+
+
+\section{Machine Teaching}
 
 \section{Logistic Regression}
 
