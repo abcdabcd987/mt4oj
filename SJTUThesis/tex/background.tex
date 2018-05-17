@@ -341,13 +341,101 @@
 
             Online judges can run multiple automatic graders on several machines or
             on a machine with multiple processor cores.
-            Previous subsection has described the how a automatic grader works.
+            Previous subsection has described how a automatic grader works.
+
+        \subsubsection{Security Concerns}
+            % TODO: cite security papers
 
             The code automatic graders compile and run is submitted by users from the Internet
             which is untrusted and can even be malicious.
             Therefore, the design of online judges must include serious security concerns.
 
-        \subsubsection{Virtual Judge}
+            The very basic protection over the file system would be running the submitted code
+            with a non-privileged user in a \texttt{chroot}ed environment
+            along with appropriate Linux file system permission,
+            preventing malicious source code from reading sensitive configuration file of the online judge
+            or tampering with system files.
+            Since the submitted code are asked to communicate only through standard input/output,
+            any attempts to open a file would be suspicious.
+            Linux API \texttt{setrlimit} can set resource limits for the submitted code,
+            including CPU time, memory size, the number of opened files, the number of threads, and so on.
+
+            Some automatic graders uses \emph{ptrace} series of Linux APIs to intercept system calls to
+            achieve more accurate control over the execution of the submitted code.
+            If students' program tries to invoke a forbidden system call or with undesired arguments,
+            the automatic grader will immediately kill the process and give ``Runtime Error'' verdict.
+
+            Another technology online judges use to further improve security is \emph{AppArmor}
+            which is a Linux kernel enhancement to confine programs to a limited set of resources.
+            It can mediate file access, library loading, execution of applications, coarse-grained network,
+            capabilities, \texttt{ptrace}, and so on.
+            % TODO: cite https://wiki.ubuntu.com/Security/Features#apparmor
+
+            Although these constraints help improve security,
+            it can sometimes block the execution of a benign program,
+            especially if the online judge supports variety of programming languages.
+            For instance, the interpretation of a Java source code requires the permission to read
+            Java library files and the ability to spawn threads for the just-in-time (\emph{JIT}) compiler to run.
+            Therefore, the system administrator of a online judge need to carefully tune the security policy configuration.
+            Too much constraint will forbid a benign program.
+            Too loose policy might expose the risk of security breach.
+            It requires the system administrator to be familiar with the compiler and the execution runtime
+            of each programming language to write a appropriate security policy,
+            which is not feasible for most online judge organizers.
+            % TODO: snapshot of programming languages on codeforces
+
+            Recently, \texttt{cgroups} and Linux namespaces features enables operating system level virtualization.
+            Container technologies like \emph{LXC} and \emph{Docker} make limiting resources easier.
+            Instead of writing detailed security policy,
+            the system administrator of a online judge simply need to specify the coarse resource limits.
+            The execution of malicious code is tolerable inside the container,
+            because the malicious code can at best corrupt the operating system inside the container
+            which is isolate from other containers and the host operating system.
+            Containers are lightweight as the spawn time is milliseconds and
+            there is no overhead of real hardware virtualization.
+
+            Keep in mind that containers are merely isolation provided by Linux kernel.
+            Containers and the host share the same kernel.
+            Exploiting kernel vulnerabilities might result in the malicious program escaping from the container.
+            For an extra level of security,
+            system administrators might run the automatic grader container inside some virtual machine hypervisor.
+            % TODO: diagram of different layers of isolation
+
+        \subsubsection{Virtual Judge} % TODO: cite; TODO: diagram of the delegation process
+
+            High quality problems span different online judges.
+            Sometimes, students might need to register a new account on a newly visited online judge
+            just in order to solve a few assignments.
+            Sometimes, tutors of competitive programming competitions might want to organize an exam
+            of which problems are from different online judges,
+            some of which does not even have a contest feature.
+            To deal with these issues, the virtual judge creates a problem-centric platform,
+            breaking the boundary of different online judges.
+
+            The ``virtual'' judge is not a ``real'' judge in the sense that it does not own any problems,
+            nor does it run any automatic graders.
+            It acts like a proxy between students and different online judges.
+            The virtual judge has a web crawler that retrieves problem descriptions from different online judges.
+            Students can then read all problems across different online judges within the same website.
+
+            Students only need to register one account on the virtual judge.
+            The virtual judge has several proxy accounts on each online judge.
+            When students submit the code at the virtual judge with their own account,
+            the virtual judge automatically submit the code to the corresponding online judge
+            with the proxy accounts.
+            Then, the web crawler keeps watching the status pages of these delegated submission
+            until the result is determined.
+            Finally, the virtual judge store the result fetched by the web crawler to its own database
+            and show the result to students.
+
+            The virtual judge also provides a contest feature.
+            It does not require the upstream online judge to have a contest feature.
+            The virtual judge submit a source code in a contest to the upstream online judge
+            as if it is a normal submission.
+            The service logic of contest, like submission time period and time penalty, is handled
+            by the virtual judge itself.
+
+        \subsubsection{Contests}
 
         \subsubsection{Encouragement in Students' Proactive Participation}
 
