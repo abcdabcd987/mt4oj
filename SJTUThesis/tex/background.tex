@@ -1,4 +1,5 @@
 %# -*- coding: utf-8-unix -*-
+% !TEX root = ../thesis.tex
 
 \chapter{Background}
 \label{chap:background}
@@ -506,6 +507,77 @@
 
 
 \section{Machine Teaching}
+
+    Machine learning and deep learning have showed their great accuracy and generalization capability
+    in many areas including computer visions, natural language processing, speech recognition, and so on.
+    However, to train a machine learning model requires experts in machine learning.
+    The demand of machine learning model exceeds the supply of ``teachers'' that are able to teach machines.
+    In contrast to the machine learning field which focuses on performances like accuracy,
+    the machine teaching field pays attention to the efficacy of the teachers given the learners,
+    enabling more people like data scientists and domain experts to teach machine learning algorithms,
+    the number of which can be hundreds of times more than the number of machine learning experts
+    \cite{Simard2017}.
+
+    \subsection{Who teaches whom}
+
+        Machine teaching applications can look quite different depending who teaches whom.
+
+        \subsubsection{Human teacher teaches machine learner}
+
+            Machine learning experts who have deep understanding of the learner algorithm
+            and human experts in the learner's domain can design the optimal training set
+            boosting the training efficiency of the learner.
+
+            Consider a one-dimension threshold classifier.
+            The input distribution is uniform over the interval $[0,1]$.
+            Denote the true threshold as $\theta^*$.
+            The label is binary and noiseless: $y := \bm{1}_{x \geq \theta^*}$.
+
+            Passive learning receives $n$ training items
+            $x_1, x_2, \cdots, x_n \sim U[0,1]$ with $y_i = \bm{1}_{x \geq \theta^*}$.
+            It can be shown that with large probability a consistent learner (one that makes zero training error)
+            incurs a generalization error $\left|\hat{\theta} - \theta^*\right| = O(n^{-1})$ \cite{Zhu2018}.
+            The uncertainty of the decision boundary is defined by the innermost pair of negative and positive samples.
+            Equivalently, archiving $\epsilon$ error requires $n \geq O(\epsilon^{-1})$ training data.
+
+            A human teacher knows $\theta^*$ can construct a training set containing only two items
+            that are $\epsilon$ apart with $\theta^8$ in the middle.
+            Training on this two-item training set results in $\epsilon$ generalization error for any $\epsilon$.
+
+            Study shows that in the case that human teacher is not able to give the optimal training set,
+            machine teaching allows the machine student to ``teach the human how to teach'' \cite{Suh2016}.
+
+        \subsubsection{Machine teacher teaches machine learner}
+
+            An adaptive spam filter $A(D)$ are constantly re-train over time on training set $D$ to accommodate
+            the changing legitimate content and the variants of spams.
+            The machine learner can be a malicious program that sends specially designed emails
+            to the spam filter to manipulate the threshold from $\hat{\theta}$ to some nefarious $\theta^*$ instead,
+            such that certain spam emails can get pass the filter \cite{Alfeld2016}.
+            The machine learner changes the training set of the spam filter subtly by $\delta$ to avoid detection \cite{Mei2015}.
+            The attacking problem can be formalized as:
+
+            \begin{align*}
+                \min_{\delta, \hat{\theta}} &
+                \left\lVert\hat{\theta} - \theta^*\right\rVert + \eta \left\lVert\delta\right\rVert \\
+                \textrm{s.t.} & \hat{\theta} = A(D+\delta)
+            \end{align*}
+
+        \subsubsection{Machine teacher teaches human learner}
+
+            Every human student is unique.
+            They have different mindsets, different skill sets, and different mastery over knowledge components.
+            Machine teaching provides a unique approach to design the optimal lessons for individual students.
+
+            Machine teaching explicitly assumes a cognitive model $A$ of students.
+            Given lessons $D$, we can compute the resulting cognitive state $A(D)$,
+            and then evaluate the test score via an appropriate teaching risk function $\rho(A(D), \theta^*)$
+            whose minimum is at $\theta^*$.
+            In other words, machine teaching treats the human learner as a ``transparent box.''
+
+    \subsection{Education}
+
+
 
 \section{Logistic Regression}
 
