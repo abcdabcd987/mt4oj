@@ -1,4 +1,5 @@
 %# -*- coding: utf-8-unix -*-
+% !TEX program = xelatex
 % !TEX root = ../thesis.tex
 
 \chapter{Background}
@@ -9,15 +10,15 @@
     \subsection{Programming Education}
 
         As we walk into a century surrounded by all kinds of computing devices,
-        programming skill gains more and more attention.  % TODO: cite
+        programming skill gains more and more attention. \todo{cite}
         Universities used to teaching programming to merely computer science majored students,
-        but more and more of them are opening the course to all.  % TODO: cite
+        but more and more of them are opening the course to all.  \todo{cite}
 
         One part of programming education is mastering one programming language.
         Mechanisms of modern computers may be too complicated for non computer science majored students to learn,
         but thanks to the abstractions of processors, operating systems, and high-level programming languages,
         it becomes easier and easier to program computers to do what users want.
-        The most popular high-level programming languages includes C++, Python, Java, and so on. % TODO: cite
+        The most popular high-level programming languages includes C++, Python, Java, and so on. \todo{cite}
         Instead of dealing with registers and memory addresses using processors' instruction set,
         high-level programming languages bring up concepts like variables, arrays, expressions, loops, functions,
         threads, processes, and other computer science abstractions.
@@ -30,7 +31,7 @@
         There are mind sports specially focus on algorithms.
         For instance, ACM International Collegiate Programming Contest (\emph{ACM-ICPC}) is an annual
         competitive programming competition among the universities of world.
-        In 2017, 49,935 students from 3,098 universities in 111 countries participated. % TODO: cite (wiki)
+        In 2017, 49,935 students from 3,098 universities in 111 countries participated. \todo{cite (wiki)}
         Companies value this kind of thinking skills, as well.
         It is a common practice for companies to ask algorithm puzzles when interviewing candidate programmers.
 
@@ -78,9 +79,9 @@
             However, it is likely that there are several alternative solutions to the same problem
             with the same complexity if not better.
             For instance, suppose an assignment can reduce to a minimum spanning tree problem
-            and the author expects the Prim algorithm.  % TODO: cite Prim
+            and the author expects the Prim algorithm.  \todo{cite Prim}
             A student might turn in a solution with Kruskral algorithm which is also an algorithm that
-            solves the minimum spanning tree problem.  % TODO: cite Kruskral
+            solves the minimum spanning tree problem.  \todo{cite Kruskral}
             In this case, if the grader is not aware of Kruskral algorithm, the grader might give a wrong verdict
             because Kruskral algorithm looks completely different from Prim algorithm, i.e. the standard solution.
             Notice that this is not the fault of the grader, because the grader might be a teaching assistant
@@ -121,13 +122,13 @@
 
             Because of understanding students' solution costs graders lots of energy,
             subtle mistakes hidden in details often escape from being found.
-            For example, supposing the standard solution is Floyd algorithm, % TODO: cite
+            For example, supposing the standard solution is Floyd algorithm, \todo{cite}
             the grader might expect students' solutions to have two kinds of patterns:
             three nested loops and a dynamic programming equation.
             However, the solution might mixing up the permutation of the three loop variables,
             which makes the algorithm no longer correct.
             The grader might not be able to find such subtle an error.
-            % TODO: correct & incorrect floyd code
+            \todo{correct and incorrect floyd code}
 
         \subsubsection{Low Scalability}
 
@@ -273,21 +274,21 @@
         Due to its overwhelming superiority,
         universities widely integrate online judges with programming-related courses \cite{Li2005}.
         There are dozens of popular online judges.
-        Some of them are famous world-wide, such as CodeForces, TopCoder, SPOJ, uVA, and so on. % TODO: cite
+        Some of them are famous world-wide, such as CodeForces, TopCoder, SPOJ, uVA, and so on. \todo{cite}
         Online judges can roughly divide into three categories.
 
-        One is maintained by universities, such as POJ, HDU, and so on. % TODO: cite
+        One is maintained by universities, such as POJ, HDU, and so on. \todo{cite}
         The university's ACM-ICPC participants actively train on these online judges.
         In addition, these online judges also serve programming courses.
         Teaching assistants hand out homework assignments and organize exams on online judges.
 
         Another is maintained by high schools
         or retired Olympiad in Informatics (\emph{OI}) participants,
-        such as LibreOJ, and so on. % TODO: cite
+        such as LibreOJ, and so on. \todo{cite}
         Because most high schools do not teach programming systematically,
         the only purpose of these kind of online judges is their internal OI training.
 
-        The last category is operated by commercial companies. % TODO: cite; TODO: marong's OJ
+        The last category is operated by commercial companies. \todo{cite; TODO: marong's OJ}
         LeetCode, for example, focus on the interview problems ask by big companies.
         Users need to pay for the full problem set and solutions with high quality explanations.
         In China, the market of private tutoring on competitive programming competitions is getting larger.
@@ -345,7 +346,7 @@
             Previous subsection has described how a automatic grader works.
 
         \subsubsection{Security Concerns}
-            % TODO: cite security papers
+            \todo{cite security papers}
 
             The code automatic graders compile and run is submitted by users from the Internet
             which is untrusted and can even be malicious.
@@ -370,7 +371,7 @@
             which is a Linux kernel enhancement to confine programs to a limited set of resources.
             It can mediate file access, library loading, execution of applications, coarse-grained network,
             capabilities, \texttt{ptrace}, and so on.
-            % TODO: cite https://wiki.ubuntu.com/Security/Features#apparmor
+            \todo{cite https://wiki.ubuntu.com/Security/Features}
 
             Although these constraints help improve security,
             it can sometimes block the execution of a benign program,
@@ -383,7 +384,7 @@
             It requires the system administrator to be familiar with the compiler and the execution runtime
             of each programming language to write a appropriate security policy,
             which is not feasible for most online judge organizers.
-            % TODO: snapshot of programming languages on codeforces
+            \todo{snapshot of programming languages on codeforces}
 
             Recently, \texttt{cgroups} and Linux namespaces features enables operating system level virtualization.
             Container technologies like \emph{LXC} and \emph{Docker} make limiting resources easier.
@@ -400,7 +401,7 @@
             Exploiting kernel vulnerabilities might result in the malicious program escaping from the container.
             For an extra level of security,
             system administrators might run the automatic grader container inside some virtual machine hypervisor.
-            % TODO: diagram of different layers of isolation
+            \todo{diagram of different layers of isolation}
 
         \subsubsection{Contests}
 
@@ -424,11 +425,11 @@
             Ranking system is a great stimulation for participants.
             Online judges with ranking systems update each participants ranking score
             after the contest has finished.
-            The ranking systems are usually variants of the Elo rating system. % TODO: cite elo, tc, cf
+            The ranking systems are usually variants of the Elo rating system. \todo{cite elo, tc, cf}
             It takes two factors into account:
             the participant's current ranking, and the ranking of other participants.
             It roughly reflects a participant's level.
-            % TODO: snapshot of cf ranking
+            \todo{snapshot of cf ranking}
 
             The contest feature can also serve as other purpose.
             For example, teachers can hold a exam on the online judge
@@ -438,7 +439,7 @@
             set the start and end date (which usually spans days or a few weeks).
             The scoreboard precisely shows whether a student has finished all the assignments.
 
-        \subsubsection{Virtual Judge} % TODO: cite; TODO: diagram of the delegation process
+        \subsubsection{Virtual Judge} \todo{cite; TODO: diagram of the delegation process}
 
             High quality problems span different online judges.
             Sometimes, students might need to register a new account on a newly visited online judge
@@ -527,7 +528,7 @@
     Given $\theta^* \in \Theta$ and $A \in \mathbb{A}$,
     there is a subspace $A^{-1}(\theta^*) \subseteq \mathbb{D}$ of training set space. 
     Training $A$ with training set inside $A^{-1}(\theta^*)$ results in the target model $\theta^*$.
-    % TODO: graph
+    \todo{graph}
 
     Although a ``teacher'' knows $\theta^*$,
     it is likely that the ``teacher'' cannot directly ``hard wire''the ``learner''
@@ -578,7 +579,7 @@
         \end{aligned}
         \end{equation*}
 
-    \subsubsection{Machine teacher teaches human learner: Education}
+    \subsection{Machine teacher teaches human learner: Education}
 
         Every human student is unique.
         They have different mindsets, different skill sets, and different mastery over knowledge components.
@@ -670,7 +671,7 @@
     In other words, the computation of both the logistic regression model and its gradient is fast.
     Consequently, logistic regression model is widely adopted in the industry,
     especially where computation time is limited, such as click-through-rate estimation and recommendation systems.
-    % TODO: cite
+    \todo{cite}
 
     \subsection{Kernel Tricks}
 
@@ -691,14 +692,14 @@
                 such as books on an online shop.
                 Items also have a set of characteristics.
                 For example, the author of a book.
-            \item[User-Item Features] These features reflects the relation between users and items.
+            \item[Context Features] These features reflects interactions between users and items.
                 Some features provide additional information,
                 for example, it can be it can be a user's rate on a specific book.
                 Others can be derived from user features and item features.
         \end{description}
 
         To enable a linear model to capture the relations between user features and item features,
-        it requires domain experts manually calculating user-item features.
+        it requires domain experts manually calculating context features.
 
         Mathematically, the data points are not always linearly separable.
         Kernel tricks enables linear models like logistic regression to capture non-linear regression.
@@ -719,16 +720,247 @@
         In this case, it is not linear separable.
         Consider the feature map $\varphi((x_1, x_2)) = (x_1^2, \sqrt{2}x_1x_2, x_2^2)$.
         Now data becomes linearly separable. \cite{Rai2011}
-        % TODO: figure
+        \todo{figure}
 
-        The more general kernel is the quadratic kernel.
+        The more general kernel is quadratic kernels.
+        Consider data point $x = (x_1, x_2, \cdots, x_n)$.
+        A quadratic kernel maps $x$ to 
 
+        \[
+        \varphi(x) := (1, \sqrt{2}x_1, \cdots, \sqrt{2}x_n, x_1^2, \cdots, x_n^2,
+          \sqrt{2}x_1x_2, \cdots, \sqrt{2}x_1x_n, \cdots, \sqrt{2}x_{n-1}x_n)
+        \]
+
+        Each new feature uses a pair of the original features,
+        therefore, it can capture the interaction between each pair of features.
 
 \section{Factorization Machine}
 
-\section{Boosting Tree}
+    \subsection{Limitation of Kernel Tricks}
 
-\section{Recurrent Neural Network}
+        Notice that, the linear combination of the transformed feature vector and the coefficients is
+
+        \[
+        w^T\varphi(x) = w_0 + \sqrt{2}\sum_{i=1}^n w_ix_i
+        + \sum_{i=1}^n w_{ii}x_i^2 + \sqrt{2}\sum_{i=1}^n\sum_{j=i+1}^n w_{ij}x_ix_j
+        \]
+
+        In other words, the number of parameters of a $n$-dimension input has $O(n^2)$ dimensions.
+        However, it may not work well with recommendation systems.
+
+        The input vector of recommendation systems are usually sparse.
+        For example, there can be some one-hot features.
+        A one-hot feature may span thousands of dimension.
+        There is only one dimension has non-zero value and the others are all zeros.
+
+        The blast of the number of parameters makes the training process inefficient.
+        What's worse, in order to learn $w_{ij}$,
+        there need to be enough input vectors that satisfy $x_i \neq 0$ and $x_j \neq 0$,
+        which usually is not true for all pairs of $i$ and $j$.
+        Consequently, the inefficient learning process might eventually result in a ineffective model
+        because $w_{ij}$ is noisy.
+        It is obvious that this issue will become worse if we want to capture relations of three or more features.
+
+    \subsection{Factorization Machine}
+
+        Factorization machine allows parameter estimation under very sparse data
+        where linear regressions with kernel tricks fail. \cite{Rendle2010}
+
+        The model equation for a factorization machine of degree $d=2$ is defines as:
+
+        \begin{equation}
+        y(x) := w_0 + \sum_{i=1}^n w_i x_i + \sum_{i=1}^n\sum_{j=i+1}^n \langle \bm{v}_i, \bm{v}_j \rangle x_ix_j
+        \label{eq:fm}
+        \end{equation}
+
+        where the the model parameters that have to be estimated are:
+
+        \[
+        w_0 \in \mathbb{R}, \quad w \in \mathbb{R}^n, \quad \bm{V} \in \mathbb{R}^{n \times k}
+        \]
+
+        And $\langle \cdot, \cdot \rangle$ is the dot product of two vectors of size $k$:
+
+        \[
+        \langle \bm{v}_i, \bm{v}_j \rangle := \sum_{f=1}^k v_{if}v_{jf}
+        \]
+
+        A row $\bm{v}_i$ within $\bm{V}$ describes the $i$-th variable with $k$ factors.
+        $k \in \mathbb{N}_0^+$ is a hyperparameter that defines the dimensionality of the factorization.
+
+        The two-degree factorization machine captures all single and pairwise interactions between variables:
+
+        \begin{itemize}
+            \item $w_0$ is the global bias.
+            \item $w_i$ models the importance of $i$-th variable.
+            \item $\langle \bm{v}_i, \bm{v}_j \rangle$ reflects the interaction
+                between the $i$-th variable and the $j$-th variable.
+        \end{itemize}
+
+        The difference between the factorization machine and kernel tricks is that
+        kernel tricks use a independent parameter for each pair of interaction, resulting in $O(n^2)$ parameters,
+        but the factorization machine models the interaction by factorizing it, resulting in $O(nk)$ parameters.
+        For large enough $k$, the factorization machine is able to express any interaction matrix $\bm{W}$ \cite{Rendle2010},
+        therefore, the factorization machine is as expressive as kernel tricks.
+        On the other hand, choosing small $k$ restricts the capability of the factorization machine,
+        which in turn can reduce the noisy and leads to better generalization under sparsity,
+        because there is not enough data to disclose the complicated pairwise interaction.
+        \todo{figure like https://www.zhihu.com/question/27043630}
+
+        Although the complexity of calculating the score function of the factorization machine \ref{eq:fm}
+        might seem to be $O(kn^2)$ if taking a naive approach,
+        transforming the formula in the following manner shows that it can be done in linear time $O(kn)$:
+
+        \begin{align*}
+        & \sum_{i=1}^n\sum_{j=i+1}^n \langle \bm{v}_i, \bm{v}_j \rangle x_ix_j \\
+        =& \frac { 1} { 2} \sum _ { i = 1} ^ { n } \sum _ { j = 1} ^ { n } \left\langle \bm { v } _ { i } ,\bm { v } _ { j } \right\rangle x _ { i } x _ { j } - \frac { 1} { 2} \sum _ { i = 1} ^ { n } \left\langle \bm { v } _ { i } ,\bm { v } _ { i } \right\rangle x _ { i } x _ { i } \\
+        =& \frac { 1} { 2} \left( \sum _ { i = 1} ^ { n } \sum _ { j = 1} ^ { n } \sum _ { f = 1} ^ { k } v _ { if } v _ { jf} x _ { i } x _ { j } - \sum _ { i = 1} ^ { n } \sum _ { f = 1} ^ { k } v _ { if } v _ { if } x _ { i } x _ { i } \right) \\
+        =& \frac { 1} { 2} \sum _ { f = 1} ^ { k } \left( \left( \sum _ { i = 1} ^ { n } v _ { if } x _ { i } \right) \left( \sum _ { j = 1} ^ { n } v _ { jf } x _ { j } \right) - \sum _ { i = 1} ^ { n } v _ { if } ^ { 2} x _ { i } ^ { 2} \right) \\
+        =& \frac { 1} { 2} \sum _ { f = 1} ^ { k } \left( \left( \sum _ { i = 1} ^ { n } v _ { if } x _ { i } \right) ^ { 2} - \sum _ { i = 1} ^ { n } v _ { if } ^ { 2} x _ { i } ^ { 2} \right)
+        \end{align*}
+
+        The two-degree factorization machine can be generalized to a $d$-degree factorization machine:
+
+        \[
+        y(x) = w_0 + \sum_{i=1}^n w_ix_i +
+        \sum_{l=2}^d\sum_{i_1=1}^n\cdots\sum_{i_{l-1}+1}^n \left( \prod_{j=1}^l x_{i_j} \right)
+        \left( \sum_{f=1}^{k_l}\prod_{j=1}^l v_{i_j,f}^{(l)} \right)
+        \]
+
+        where the interaction parameters for the $l$-th interaction is
+
+        \[
+        \bm{V}^{(l)} \in \mathbb{R}^{n \times k_l}, \quad k_l \in \mathbb{N}_0^+
+        \]
+
+        It can be proved that by similar transformation, the computation is still linear. \cite{Rendle2010}
+
+        To sum up, the factorization machine is an efficient algorithm
+        that can capture interactions of two or more variables
+        and has better generalization under sparsity compared to kernel tricks.
+        
+\section{Boosted Trees}
+
+        Decision tree is another widely used model for data analysis.
+
+        A decision tree is a binary tree.
+        Each node has exactly one parent (except for the only root node) and two children.
+        Each internal node split the input subspace into two halves by a certain criteria.
+        The leaves represents a category.
+
+        Given a decision tree, the evaluation of a input is quite straight forward.
+        At each internal node, decide which children to go by check the criteria.
+        Repeat the procedure above recursively until reaching a leaf node.
+
+        Similarly, the interpretation of a decision tree is also straight forward,
+        which is its unique advantage over other machine learning algorithms.
+        Because each node has a certain criteria,
+        drawing the binary tree along with those criteria would give a clear explanation.
+        A data analysis service provider can explain the model to the buyer by visualizing
+        the decision tree without the need for the buyer to know statistic or machine learning knowledge.
+        \todo{example figure}
+
+    \subsection{XGBoost}
+
+        Gradient boosting is a machine learning technique,
+        which produces a prediction model in the form of an ensemble of weak prediction models.
+        Gradient boosting is typically used with decision trees of a fixed size as base learners.
+        For this special case, \cite{Friedman2001} proposes a modification to gradient boosting method
+        which improves the quality of fit of each base learner.
+
+        XGBoost is a scalable machine learning system for tree boosting. \cite{Chen2016}
+
+        \todo{make this section look better}
+
+\section{Recurrent Neural Networks}
+
+    Recurrent neural networks are a family of neural networks for processing sequential data.
+    Traditional neural networks assumes the inputs are independent of each other,
+    thus they cannot find connections inside the input of sequential data.
+    In order to process sequential data, the model need to know context information.
+    For example, predicting the next character in a sentence would heavily depend on
+    characters came before it.
+
+    Recurrent neural networks ``recurrently'' compute the output of current step
+    depending on the calculation of the previous step.
+    In other words, recurrent neural networks have internal states
+    that memorize the context information between steps.
+
+    \subsection{Vanilla Recurrent Neural Networks}
+
+        \todo{RNN diagram (ref:http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-1-introduction-to-rnns/)}
+
+        The diagram shows the unfold of the vanilla recurrent neural network.
+
+        \begin{itemize}
+            \item $x_t$ is the input at time step $t$.
+                Interestingly, inputs may not be needed for each time step.
+                For instance, in the image captioning task,
+                the input presents only at the first time step which is the input image.
+                The recurrent neural network then produce the sentence step by step and character by character.
+            \item $h_t$ is the hidden state at time step $t$.
+                Its computation depends on the previous hidden state and input of the current time step:
+                $h_t = f(Ux_t + Wh_{t-1})$.
+                Thus, it memorizes the context until so far.
+                The activation function $f$ is usually a nonlinear function like $\tanh$ or $\mathrm{ReLU}$,
+                which gives the recurrent neural network the capability of fitting a nonlinear function.
+                The initial state $h_0$ is usually initialized to all zeros.
+            \item $o_t$ is the output at time step $t$.
+                For binary classification, it would be the sigmoid function $o_t = \sigma(Vh_t)$.
+                Depending on the task, the output does not necessarily present in every time step.
+                For example, determining the sentiment of a sentence only cares about the final output.
+                On the other hand, predicting a sentence character by character would need outputs at all time steps.
+            \item Unlike traditional neural networks,
+                all time steps share the same parameters $U$, $V$, and $W$ in recurrent neural networks.
+        \end{itemize}
+
+        In theory, recurrent neural networks has the capability to handle arbitrarily long sequences.
+        However, in practice, vanilla recurrent neural networks do not seem to be able to learn them.
+        \cite{Pascanu2013}
+
+    \subsection{Long Short Term Memory Networks}
+
+        Long Short Term Memory networks (\emph{LSTM}) are a special kind of recurrent neural networks.
+        It is capable of learning long-term dependencies.
+        In addition to the input vector, the output vector, and the hidden state,
+        it consists of three additional gates: the input gate, the output gate, and the forgot gate.
+        More formally, \todo{figure: http://colah.github.io/posts/2015-08-Understanding-LSTMs/}
+
+        \begin{align*}
+            f_t &= \sigma_g(W_fx_t + U_fh_{t-1} + b_f) \\
+            i_t &= \sigma_g(W_ix_t + U_ih_{t-1} + b_i) \\
+            o_t &= \sigma_g(W_ox_t + U_oh_{t-1} + b_o) \\
+            c_t &= f_t \odot c_{t-1} + i_t \odot \sigma_c(W_cx_t + U_ch_{t-1} + b_c) \\
+            h_t &= o_t \odot \sigma_h(c_t)
+        \end{align*}
+
+        Meanings of the variables are the following:
+
+        \begin{itemize}
+            \item $x_t \in \mathbb{R}^d$: The input vector
+            \item $f_t \in \mathbb{R}^h$: The forget gate's activation vector
+            \item $i_t \in \mathbb{R}^h$: The input gate's activation vector
+            \item $o_t \in \mathbb{R}^h$: The output gate's activation vector
+            \item $h_t \in \mathbb{R}^h$: The output vector of the LSTM unitTh
+            \item $c_t \in \mathbb{R}^h$: The cell state vector
+            \item $W \in \mathbb{R}^{h \times d}, U \in \mathbb{R}^{h \times h}, b \in \mathbb{R}^{h}$: 
+                The parameters
+        \end{itemize}
+
+        And the choices of activation functions:
+
+        \begin{itemize}
+            \item $\sigma_g$: the sigmoid function
+            \item $\sigma_c$: the $\tanh$ function
+            \item $\sigma_h$: the $\tanh$ function or the identity function $\sigma_h(x) = x$
+        \end{itemize}
+
+        The core idea behind LSTMs is to control how much of the information should go through. \cite{Ola2015}
+        The cell state $c_t$ ``memorizes'' the context and flows along the time steps,
+        adapting changes at each time step.
+        Gates provide a way to optionally let information through.
+        They are composed out of a sigmoid neural net layer and a element-wise multiplication operation.
+        We can think of the sigmoid layer as controlling how much of the change should be let through.
 
 \section{Reinforcement Learning}
 

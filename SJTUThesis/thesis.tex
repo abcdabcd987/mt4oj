@@ -1,4 +1,6 @@
 %# -*- coding: utf-8-unix -*-
+% !TEX program = xelatex
+
 %%==================================================
 %% thesis.tex
 %%==================================================
@@ -19,7 +21,9 @@
 
 % 逐个导入参考文献数据库
 \addbibresource{bib/thesis.bib}
-% \addbibresource{bib/chap2.bib}
+
+\usepackage{xcolor}
+\newcommand{\todo}[1]{{\color{red}\fbox{\emph{TODO: #1}}}\PackageWarning{TODO:}{#1}}
 
 \begin{document}
 
