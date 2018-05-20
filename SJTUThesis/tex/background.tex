@@ -601,6 +601,129 @@
 
 \section{Logistic Regression}
 
+    Tom Mitchell gives a formal definition of machine learning:
+    ``A computer program is said to learn from experience $E$ with respect to some class of tasks $T$
+    and performance measure $P$ if its performance at tasks in $T$, as measured by $P$, improves with experience $E$.''
+    \cite{Mitchell1997}
+    Machine learning relies on experience.
+    Depending on what experience is like, machine learning tasks can be broadly classified into two types:
+    supervised learning and unsupervised learning.
+
+    A supervised learning task learns a function based on example training data.
+    In supervised learning, each piece of training data consist of a pair of input vector
+    and the desired output, called \emph{label}.
+    A supervised learning algorithm goes through the training data and infers the function
+    which can be used to predict new examples.
+    In contrast to the performance on the training data,
+    researchers pay more attention to the ability of the model to correctly predict unseen data,
+    i.e. the capability of generalization.
+    Sometimes, predictions on the input training data can greatly outperform that on unseen data.
+    In this case, the model is overfitted, meaning that the model has ``memorized'' the training data
+    but did not ``learn''.
+
+    Logistic regression is a widely used supervised learning model.
+    The output of logistic regression is a probability for a label to belong to a given data.
+    The label is binary discrete.
+    In other words, a data point can only be either a positive sample or a negative sample.
+    Given input vector $x$ and some coefficients $w$,
+    logistic regression learns a function of the following form:
+
+    \begin{align*}
+        P(y=1 | x;w) &= \frac{1}{1+\exp(-w^Tx)} = \sigma(w^Tx)\\
+        P(y=0 | x;w) &= 1-P(y=1 | x) = 1-\sigma(w^Tx)
+    \end{align*}
+
+    where
+
+    \[
+    \sigma(x) = \frac{1}{1+\exp(-z)}
+    \]
+
+    is the logistic function (or the \emph{sigmoid} function).
+    It is an ``S''-shaped function, mapping $w^Tx$ to $[0,1]$
+    so that we can interpret $\sigma(w^Tx)$ as a probability.
+    Training a logistic regression model is a process that tries to find $w$ so that
+    $P(y=1 | x)$ is large for the input vector $x$ that belongs to the positive class,
+    and symmetrically, $P(y=0 | x)$ is large for the input vector $x$ that belongs to the negative class.
+
+    For a set of training examples with binary labels $\left\{ (x^{(i)}, y^{(i)} | i = 1, 2, \cdots, m) \right\}$,
+    the loss function, i.e. the log likelihood, is
+
+    \[
+    l(w) = -\sum_{i=1}^m \left( y^{(i)}\log\left(\sigma(w^Tx^{(i)})\right) + (1-y^{(i)})\log\left(1-\sigma(w^Tx^{(i)})\right) \right)
+    \]
+
+    It can be prove \cite{Ng2000} that the gradient of the loss function is
+
+    \[
+    \nabla_w l(w) = \sum_{i=1}^m x^{(i)}\left(\sigma(w^Tx^{(i)}) - y^{(i)}\right)
+    \]
+
+    We can derive the update rule of the stochastic gradient ascent from this:
+
+    \[
+    w_j := w_j + \eta \left( y^{(i)} - \sigma(w^Tx^{(i)}) \right) x_j^{(i)}
+    \]
+
+    where $\eta$ is the learning rate.
+
+    In other words, the computation of both the logistic regression model and its gradient is fast.
+    Consequently, logistic regression model is widely adopted in the industry,
+    especially where computation time is limited, such as click-through-rate estimation and recommendation systems.
+    % TODO: cite
+
+    \subsection{Kernel Tricks}
+
+        The definition of logistic regression shows that it's a linear model
+        because the relation of the input vector $x$ and the coefficients $w$ is a linear combination.
+        However, the capability of a linear model is limited.
+        It cannot discover the relationship between different input features,
+        i.e., different dimensions of the input vector.
+
+        For instance, in a recommendation system, there is usually three types of features: \cite{Ricci2011}
+
+        \begin{description}
+            \item[User Features] Each user may have a set of attributes.
+                For example, user demographic includes users' age, gender, and so on.
+                Some of these features may be filled by the user, like education level.
+                And others can be inferred by their behavior, such as their interested music genres.
+            \item[Item Features] Items are products which the recommendation system would like to recommend to users,
+                such as books on an online shop.
+                Items also have a set of characteristics.
+                For example, the author of a book.
+            \item[User-Item Features] These features reflects the relation between users and items.
+                Some features provide additional information,
+                for example, it can be it can be a user's rate on a specific book.
+                Others can be derived from user features and item features.
+        \end{description}
+
+        To enable a linear model to capture the relations between user features and item features,
+        it requires domain experts manually calculating user-item features.
+
+        Mathematically, the data points are not always linearly separable.
+        Kernel tricks enables linear models like logistic regression to capture non-linear regression.
+
+        For all $x$ and $x'$ in the input space $\mathcal{X}$,
+        certain functions $k(x, x')$ can be expressed as an inner product $\langle\cdot,\cdot\rangle_{\mathcal{V}}$
+        in another space $\mathcal{V}$:
+
+        \[
+        k(x, x') = \langle \varphi(x), \varphi(x') \rangle_{\mathcal{V}}
+        \]
+
+        where $\varphi: \mathcal{X} \rightarrow \mathcal{V}$ is the feature map.
+        The function $k: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ is called a \emph{kernel} function.
+
+        For example, consider a two dimension space.
+        Data points $(x_1, x_2)$ within a oval are positive samples and others are negative samples.
+        In this case, it is not linear separable.
+        Consider the feature map $\varphi((x_1, x_2)) = (x_1^2, \sqrt{2}x_1x_2, x_2^2)$.
+        Now data becomes linearly separable. \cite{Rai2011}
+        % TODO: figure
+
+        The more general kernel is the quadratic kernel.
+
+
 \section{Factorization Machine}
 
 \section{Boosting Tree}
