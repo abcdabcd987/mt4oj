@@ -1,0 +1,126 @@
+%# -*- coding: utf-8-unix -*-
+% !TEX program = xelatex
+% !TEX root = ../thesis.tex
+
+\chapter{Data Processing}
+
+\todo{chapter introduction}
+
+\section{Data Overview}
+
+    ACM Honors Class \todo{cite} of Shanghai Jiao Tong University is a elite program
+    that cultivates computer scientists and top tier leaders.
+    It has won the champion of ACM-ICPC for several times.
+    And many students in ACM Honors Class have OI backgrounds.
+    \todo{rephrase}
+
+    The Online Judge of ACM Honors Class \todo{cite} starts in late 2011.
+    At first, it only served the internal needs of ACM Honors Class.
+    Programming-related courses such as C++ Programming, Data Structures,
+    and Principle and Practice of Computer Algorithms,
+    used the Online Judge to assign homework and hold exams.
+    The ACM-ICPC team of SJTU organized several selection contests on the online judge.
+    \todo{snapshot of the OJ}
+
+    As ACM Honors Class expanded its influences, the Online Judge started to serve more people.
+    Several departments, including School of Electronic Information and Electrical Engineering,
+    School of Software, and IEEE Honors Class, use the Online Judge in programming related courses
+    like Object-Oriented Programming.
+    As for the Spring 2018 semester, the weekly submission on the Online Judge are more than ten thousand.
+
+    Thanks to the Online Judge, our project has enough data to conduct experiments.
+
+    \begin{itemize}
+        \item The data we acquired span from October 1, 2011 to March 22, 2018.
+        \item There are 7918 distinct users in total.
+        \item There are 691 problems in total.
+        \item There are 524,586 submissions in total, among which 507,269 is in the C++ language.
+            We decided to only use submissions in C++ language.
+            The number of correct C++ submissions is 158,684.
+            Therefore, the ratio between accepted submissions and incorrect submissions is about $1:2$.
+        \item Each submission contains following information:
+            the user who submitted the solution,
+            the problem identifier,
+            the source code,
+            the source code language
+            the submission date and time,
+            messages from the automatic grader,
+            the verdict the automatic grader gave.
+    \end{itemize}
+
+\section{Data Preprocessing}
+
+    Everyone deserves privacy. We do not want to leak users' information.
+    For research purpose, it does not matter which person in real world an account corresponds to,
+    as long as it is still distinguishable between different users.
+    Therefore, we map the usernames in the submission records to unique numbers.
+
+    \todo{looks too short}
+
+\section{\texttt{dev-helper}: The Development Tool}
+
+    During the early stage of development,
+    it was helpful to check individual piece of data for varies of reasons,
+    for example, it would be easy to spot some numeric values which do not make sense
+    because of some trivial bugs during the feature extraction process.
+    Also, randomly browsing the data might also help researchers to sense distribution of the data
+    in some high-level semantics.
+
+    Examining data in database management systems would be painful.
+    Hence, we built a development tool called \texttt{dev-helper}
+    that helps researchers better understand the data.
+    \texttt{dev-helper} is a web application based on the Flask \todo{cite} web framework.
+    It retrieve the raw data from the database and also read processed feature from the filesystem.
+    It can show information of a specific problem to researchers.
+    It also provides a function that displays a random problem.
+    The information page of a problem includes the following parts: \todo{snapshot}
+
+    \begin{itemize}
+        \item The description of the problem.
+        \item The metadata of the problem, including the problem identifier, time limit, memory limit, and so on.
+        \item Values of the problem features.
+        \item A random piece of accepted solution.
+            There is also a button which when clicked will display another accepted solution randomly.
+    \end{itemize}
+
+    During the early development of this project, we found that \texttt{dev-helper} is indeed very helpful.
+
+\section{Problem Tags}
+
+    We categorize problems by its knowledge component, i.e., what types of knowledge this problem examines,
+    such as dynamic programming, object-oriented programming, and so on.
+    Tags are important features of a problem,
+    but one flaw of our data is that it does not contain the tag information of problems.
+    Therefore, we have to manually label the problems with a list of tags.
+
+    In order to prevent different distributions of tags, we hired only one domain expert to label the problems.
+    The domain expert has more than six years of experience in programming and competitive programming competitions,
+    hence is surly capable of labeling the problems.
+    We added a column of 87 problem tags on the problem information page on \texttt{dev-helper}.
+    The experts read the description of a problem and several accepted solutions,
+    then marked the corresponding tags, and finally clicked save.
+
+    We believe that problem tags are important parts of the metadata of a problem.
+    Notice that, although we manually tagged the problems afterwards and the domain expert is terrific,
+    the one who knows the intention of a problem is its author.
+    Therefore, we suggest that online judges ask problem authors submit problem tags along with the problems.
+    Another alternative solution would be allowing users who have already solved the problem to tag the problem.
+    One advantage of this method would be that users might discover alternative solutions to the problem
+    which the problem author did not expect.
+
+\section{Caveats on the Data Distribution}
+
+\section{Feature Extraction}
+
+
+
+
+
+
+
+
+
+
+
+
+

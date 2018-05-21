@@ -3,7 +3,10 @@
 % !TEX root = ../thesis.tex
 
 \chapter{Background}
-\label{chap:background}
+
+\todo{chapter introduction}
+
+\todo{move sections of this chapter to other related chapters}
 
 \section{Online Judge}
     
@@ -1013,8 +1016,8 @@
         Instead, they maximize the expected \emph{total discounted return}, which is defined as:
 
         \begin{align*}
-            R_t :=& r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + \cdots \\
-            =& \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}
+            R_t :=& r_{t} + \gamma r_{t+1} + \gamma^2 r_{t+2} + \cdots \\
+            =& \sum_{k=0}^{\infty} \gamma^k r_{t+k}
         \end{align*}
 
         When $\gamma=0$, the agent maximizes the immediate reward only.
@@ -1135,11 +1138,25 @@
 
         \subsubsection{Actor Critic}
 
-            Actor critic methods both learns the policy and the value function,
+            Actor critic methods both maintains a policy $\pi(a_t|s_t;\theta_{\pi})$ and 
+            estimate the value function $V(s_t;\theta_V)$,
             combining the benefits of both policy-based learning and value-based learning.
-            
+            The neural networks that estimate the policy and the value are called the actor and the critic respectively.
+            The critic updates value function parameters $\theta_V$.
+            The actor updates policy parameters $\theta_{\pi}$, in direction suggested by the critic,
+            which lead to more effective updates compared to other policy-based methods. \todo{cite}
+            Usually, the two neural networks actually the same one except for the output layers.
+            In this way, the actor and the critic can have the same features extracted by the neural network.
 
         \subsubsection{Advantage}
+
+            The advantage function is defined to be
+            \[
+            A(s_t,a_t;\theta_{\pi},\theta_V) := R_t - V(s_t;\theta_V)
+            = \sum_{k=0}^{\infty} \gamma^k r_{t+k} - V(s_t;\theta_V)
+            \]
+            The advantage function estimates how much better the actions turned out to be than what is expected.
+            Intuitively, this allows the agent to focus on where the network's predictions were lacking.
 
 
 
