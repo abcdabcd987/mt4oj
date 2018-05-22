@@ -66,7 +66,7 @@ def run_train_test():
     x_test = csr_matrix(x_test)
     
     print('fitting the fm...')
-    fm = fastFM.sgd.FMClassification(n_iter=1000, init_stdev=0.1, l2_reg_w=0, l2_reg_V=0, rank=2, step_size=0.1)
+    fm = fastFM.sgd.FMClassification(n_iter=100000, init_stdev=0.1, l2_reg_w=0, l2_reg_V=0, rank=2, step_size=0.001)
     fm.fit(x_train, y_train)
 
     print('validating...')

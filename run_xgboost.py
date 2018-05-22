@@ -41,7 +41,7 @@ def run_train_test():
                  # scale_pos_weight=np.sum(y_train == 0) / np.sum(y_train == 1),
                  )
     print(param)
-    bst = xgb.train(param, dtrain, num_boost_round=64, evals=[(dtrain, 'train'), (dtest, 'test')])
+    bst = xgb.train(param, dtrain, num_boost_round=10, evals=[(dtrain, 'train'), (dtest, 'test')])
     bst.save_model('data/xgb.model')
 
     print('validating...')

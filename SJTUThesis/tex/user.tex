@@ -4,15 +4,135 @@
 
 \chapter{User Models}
 
+\section{Backgrounds}
+
+    \subsection{Feature Scaling}
+
+    \subsection{Validation and Metrics}
+
+\section{Logistic Regression}
+
+    \todo{move from the background chapter}
+
 \section{Factorization Machine}
+
+    \subsection{Implementation}
+
+        We used the \verb|fastFM|\cite{bayer_fastfm:_2016} Python library.
+        We chose the stochastic gradient descent solver with the hyper-parameters shown in Table \ref{table:fm param}.
+
+        \begin{table}[hpbt]
+        \centering
+        \begin{tabular}{lcl}
+            \hline
+            Hyper-parameter & Value & Description \\
+            \hline
+            \verb|n_iter|    & 100,000 & The number of iterations of individual samples. \\
+            \verb|init_std|  & 0.1 & The standard deviation for the initialization of the parameters. \\
+            \verb|rank|      & 2 & The rank of the factorization used for the second order interactions. \\
+            \verb|l2_reg_w|  & 0 & L2 penalty weight for linear coefficients. \\
+            \verb|l2_reg_V|  & 0 & L2 penalty weight for pairwise coefficients. \\
+            \verb|l2_reg|    & 0 & L2 penalty weight for all coefficients. \\
+            \verb|step_size| & 0.001 & Step size for the SGD solver. \\
+            \hline
+        \end{tabular}
+        \caption{The hyper-parameters of the factorization machine user model}
+        \label{table:fm param}
+        \end{table}
+
+    \subsection{Result}
+
+        Table \ref{table:fm result} shows the validation result of the factorization machine user model.
+
+        \begin{table}[hpbt]
+        \centering
+        \begin{tabular}{lll}
+            \hline
+            Feature Set & Accuracy & AUC \\
+            \hline
+            Basic    & \verb|0.6877472027750164| & \verb|0.6835856799533652| \\
+            Extended & \verb|0.6936271917764758| & \verb|0.6580982070227229| \\
+            \hline
+        \end{tabular}
+        \caption{The result of the factorization machine user model}
+        \label{table:fm result}
+        \end{table}
 
 \section{Boosted Tree}
 
+    \subsection{Implementation}
+
+        We used the \verb|xgboost|\cite{Chen2016} Python library
+        with the hyper-parameters shown in Table \ref{table:fm param}.
+
+        \begin{table}[hpbt]
+        \centering
+        \begin{tabular}{lcl}
+            \hline
+            Hyper-parameter & Value & Description \\
+            \hline
+            \verb|booster| & gbtree & We use gradient boosting tree as the booster method. \\
+            \verb|num_boost_round| & 10 & The number of boosting iterations. \\
+            \verb|max_depth| & 7 & Maximum tree depth for base learners. \\
+            \verb|learning_rate| & 0.3 & Boosting learning rate. \\
+            \hline
+        \end{tabular}
+        \caption{The hyper-parameters of the boosted tree user model}
+        \label{table:fm param}
+        \end{table}
+
+    \subsection{Result}
+
+        Table \ref{table:fm result} shows the validation result of the boosted tree user model.
+
+        \begin{table}[hpbt]
+        \centering
+        \begin{tabular}{lll}
+            \hline
+            Feature Set & Accuracy & AUC \\
+            \hline
+            Basic    & \verb|0.7029230736690708| & \verb|0.7104618544225273| \\
+            Extended & \verb|0.7184056346369424| & \verb|0.7352554610590846| \\
+            \hline
+        \end{tabular}
+        \caption{The result of the boosted tree user model}
+        \label{table:xgboost result}
+        \end{table}
+
 \section{Recurrent Neural Networks}
 
+    Table \ref{table:rnn result} shows the validation result of the boosted tree user model.
 
+    \subsection{Implementation}
 
+        We use the \verb|Keras|\cite{chollet2015keras} Python library to build the neural network.
+        The neural network consists of a LSTM layer and a fully connected layer.
+        In addition to features at the current time step,
+        the input vector also contains features of the user's five previous submissions
+        and whether those submissions were accepted.
+        The output dimension of the LSTM layer is 10.
+        The fully connected layer only has a scalar output activated by the sigmoid function.
+        We use the Adam optimizer\cite{kingma_adam:_2014}.
 
+    \subsection{Result}
+
+        \begin{table}[hpbt]
+        \centering
+        \begin{tabular}{lll}
+            \hline
+            Feature Set & Accuracy & AUC \\
+            \hline
+            Basic    & \verb|0.7163222572389433| & \verb|0.7232273437233644| \\
+            Extended & \verb|0.7194526110958354| & \verb|0.7308123624422472| \\
+            \hline
+        \end{tabular}
+        \caption{The result of the recurrent neural networks user model}
+        \label{table:rnn result}
+        \end{table}
+
+\section{Counting Features}
+
+    \todo{counting feature: count before vs. after}
 
 
 
