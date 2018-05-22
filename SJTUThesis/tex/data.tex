@@ -110,12 +110,137 @@
 
 \section{Caveats on the Data Distribution}
 
+    We found some interesting properties of the data from the Online Judge:
+
+    Some problems added in contests or homework rarely have people attempting them
+    after the period of the contest or the homework finished.
+    In other words, those problems only served once, for a small group of the Online Judge.
+    Hence, those problems might have difficulty comparing features like difficulty to other problems,
+    due to the insufficient size and the high bias of the data.
+
+    On the user side, similar bias exists.
+    Users seldom if ever try to solve problems that is far above or below their levels.
+    For example, a experienced OI participant would not pick a entry-level programming problem.
+    Conversely, a student who begins to learn programming would not
+    attempt to solve an advanced data structure problem.
+
+    Although the Online Judge has users from all over the country,
+    the majority usage of the Online Judge is still programming-related courses at SJTU.
+    And few students do extra exercises on the Online Judge besides assignments which courses required .
+
+    Consequently, the data distribution might be highly biased and clustered.
+
 \section{Feature Extraction}
 
+    \todo{make it longer: reason about the features; implementation details: concatenation}
 
+    \subsection{Problem Features}
 
+        We went through all submission records and extracted the problem features shown in Table \ref{table:problem features}.
 
+        \begin{table}[hpbt]
+        \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \centering
+        \begin{tabular}{lcp{12.5cm}}
+            \hline
+            Feature Name & Size & Description \\
+            \hline
+            {\footnotesize\verb|pf_tags|} & 87 &
+                A multi-hot vector.\newline
+                A component is 1 if the problem has the corresponding tag, otherwise 0. \\
+            {\footnotesize\verb|pf_num_submit|} & 1 &
+                The number of submissions to the problem. \\
+            {\footnotesize\verb|pf_ac_rate|} & 1 &
+                The ratio of the number of accepted solution to the total number of submissions. \\
+            {\footnotesize\verb|pf_avg_lines|} & 1 &
+                The average lines of source code of accepted solutions submitted to the problem. \\
+            {\footnotesize\verb|pf_avg_bytes|} & 1 &
+                The average bytes of source code of accepted solutions submitted to the problem. \\
+            {\footnotesize\verb|pf_avg_time|} & 1 &
+                The average total run time of accepted solutions submitted to the problem. \\
+            {\footnotesize\verb|pf_avg_mem|} & 1 &
+                The average maximum memory usage of accepted solutions submitted to the problem. \\
+            {\footnotesize\verb|pf_avg_score|} & 1 &
+                The average score of solutions submitted to the problem. \\
+            \hline
+        \end{tabular}
+        \caption{Problem Features}
+        \label{table:problem features}
+        \end{adjustwidth}
+        \end{table}
 
+    \subsection{User Features and Context Features}
+
+        For each submission record, we extracted the following user features shown in Table \ref{table:user features}.
+        All of these features refers the user to the one who made the submission.
+        All statistics count before the submission.
+        Features above the separator is the basic feature set.
+        The extended feature set includes all features in the table.
+
+        \begin{table}[hpbt]
+        % \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \centering
+        \begin{tabular}{lcp{10cm}}
+            \hline
+            Feature Name & Size & Description \\
+            \hline
+            {\footnotesize\verb|uf_num_submit|} & 1 &
+                The number of total submissions made by this user before this submission. \\
+            {\footnotesize\verb|uf_ac_rate|} & 1 &
+                The ratio of accepted solutions to the total number of submissions. \\
+            {\footnotesize\verb|uf_tag_num_submit|} & 87 &
+                The number of total submissions grouped by problem tags. \\
+            {\footnotesize\verb|uf_tag_ac_rate|} & 87 &
+                The ratio of accepted solutions to the total number of submissions grouped by problem tags. \\
+            \hline
+            {\footnotesize\verb|uf_num_ac_problem|} & 1 &
+                The number of solved problems. \\
+            {\footnotesize\verb|uf_tag_num_ac_problem|} & 87 &
+                The number of solved problems grouped by problem tags. \\
+            {\footnotesize\verb|uf_num_one_ac|} & 1 &
+                The number of problems that were solved by the first attempt to the problem. \\
+            {\footnotesize\verb|uf_one_ac_rate|} & 1 &
+                The ratio of the number of problems that were solved by the first attempt to the problem
+                to the total number of solved problems. \\
+            {\footnotesize\verb|uf_tag_num_one_ac|} & 87 &
+                The number of problems that were solved by the first attempt to the problem grouped by problem tags. \\
+            {\footnotesize\verb|uf_tag_one_ac_rate|} & 87 &
+                The ratio of the number of problems that were solved by the first attempt to the problem
+                to the total number of solved problems grouped by problem tags. \\
+            {\footnotesize\verb|uf_avg_lines|} & 1 &
+                The average lines of source code of submissions made by this user. \\
+            {\footnotesize\verb|uf_tag_avg_lines|} & 87 &
+                The average lines of source code of submissions made by this user grouped by problem tags.\\
+            {\footnotesize\verb|uf_avg_bytes|} & 1 &
+                The average bytes of source code of submissions made by this user. \\
+            {\footnotesize\verb|uf_tag_avg_bytes|} & 87 &
+                The average bytes of source code of submissions made by this user grouped by problem tags. \\
+            {\footnotesize\verb|uf_avg_score|} & 1 &
+                The average score of submissions made by this user. \\
+            {\footnotesize\verb|uf_tag_avg_score|} & 87 &
+                The average score of submissions made by this user grouped by problem tags. \\
+            {\footnotesize\verb|uf_avg_submit_interval|} & 1 &
+                The average time interval between consecutive submissions. \\
+            {\footnotesize\verb|uf_tag_avg_submit_interval|} & 87 &
+                The average time interval between consecutive submissions grouped by problem tags. \\
+            {\footnotesize\verb|mf_is_first_attempt|} & 1 &
+                Whether this user has attempted to do this problem before or not. \\
+            {\footnotesize\verb|mf_has_ac|} & 1 &
+                Whether this user has solved this problem before or not. \\
+            {\footnotesize\verb|mf_num_attempt|} & 1 &
+                The number of attempts this user has tried to do this problem before. \\
+            {\footnotesize\verb|mf_avg_submit_interval|} & 1 &
+                The average time interval between consecutive submissions to this problem. \\
+            \hline
+        \end{tabular}
+        \caption[User Features]{\textbf{User Features}
+            All of these features refers the user to the one who made the submission.
+            All statistics count before the submission.
+            Features above the separator is the basic feature set.
+            The extended feature set includes all features in the table. }
+        \label{table:user features}
+        % \end{adjustwidth}
+        \end{table}
 
 
 
