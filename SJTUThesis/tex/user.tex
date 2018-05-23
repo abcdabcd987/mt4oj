@@ -4,11 +4,84 @@
 
 \chapter{User Models}
 
+    The training process of a reinforcement learning involves frequent interaction
+    between the reinforcement learning agent and users.
+    Deploying an unreliable reinforcement learning algorithm in production is not a feasible option.
+    On one hand, the agent is not well-trained, producing bad or misleading recommendations,
+    which could jeopardize the education process.
+    On the other hand, a single interaction between the agent and the student takes a long time.
+    It takes hours if not days for a student to solve a problem,
+    not to mention the even longer interval before attempting another problem.
+    Hence, it could take tens of years to train the agent if not impossible at all.
+
+    Therefore, we developed another approach.
+    We firstly trained a \emph{user model} to capture students' mindsets using the existing submission records.
+    Then, we programmed the reinforcement learning to interact with the user model.
+    This real-time interaction enabled the successful training process.
+
+    \todo{chapter overview}
+
+\section{Problem Formulation}
+
+    We formulate the user model as a binary classifier:
+    given the user features, problem features, and the context features,
+    the user model predicts whether the user is able to solve the problem,
+    more precisely,
+    it is the probability of the user able to solve the problem that we care about.
+
+    The training and validation data is from the submission records of the Online Judge.
+    We used the earliest 80\% records as the training set,
+    and the most recent 20\% records is the validation set.
+    For each submission record, the user features and the context features
+    count statistics before the user made this submission.
+    On the other side, we believe that the objective difficulty of each problem should not change over time.
+    Hence, the more records are used, the better the generated problem features estimate the objective difficulty.
+    Therefore, the problem features are the exactly the same for the same problem,
+    generated using all of the submissions.
+
 \section{Backgrounds}
 
     \subsection{Feature Scaling}
 
-    \subsection{Validation and Metrics}
+        The range of features in our feature set varies a lot.
+        For example, $\verb|uf_ac_rate| \in [0,1]$, but $\verb|uf_avg_bytes|$ can be a few thousands.
+
+        Feature scaling is a method to standardize the range of independent variables or features of data,
+        making the learning process more robust. \todo{cite}
+        Another reason is that stochastic gradient decent converges much faster with feature scaling than without it.
+        \cite{ioffe_batch_2015}
+
+        We scaled each feature to $[0,1]$ in the following manner before feeding the input matrix $X$ to a user model.
+        \[
+        X_{:,j} \leftarrow \frac{X_{:,j}}{\max X_{:,j}}
+        \]
+
+        Notice that, not every user model is sensitive to feature scaling.
+        For example, feature scaling has no effect on the boosted trees, because they deal with discrete values.
+
+    \subsection{Metrics: Accuracy and AUC}
+
+        To have a sense of the performance of a user model, we watch the following two metrics:
+        classification accuracy and AUC.
+
+        Classification accuracy, as the name suggests, is the ratio of
+        the number of correct predictions to the total number of predictions made.
+        A overfitted model tend to have a big gap between the train accuracy and the validation accuracy.
+
+        Area under the receiver operating characteristic curve (\emph{AUC})
+        is another most widely used metrics in classification tasks.
+        There can be several equivalent interpretations of AUC \cite{flach_putting_2007}:
+
+        \begin{itemize}
+            \item The expectation that a uniformly drawn random positive is ranked before a uniformly drawn random negative.
+            \item The expected proportion of positives ranked before a uniformly drawn random negative.
+            \item The expected true positive rate if the ranking is split just before a uniformly drawn random negative.
+            \item The expected proportion of negatives ranked after a uniformly drawn random positive.
+            \item 1 – the expected false positive rate if the ranking is split just after a uniformly drawn random positive.
+        \end{itemize}
+
+        \todo{example figure for AUC}
+
 
 \section{Logistic Regression}
 
@@ -63,7 +136,7 @@
     \subsection{Implementation}
 
         We used the \verb|xgboost|\cite{Chen2016} Python library
-        with the hyper-parameters shown in Table \ref{table:fm param}.
+        with the hyper-parameters shown in Table \ref{table:xgboost param}.
 
         \begin{table}[hpbt]
         \centering
@@ -78,7 +151,7 @@
             \hline
         \end{tabular}
         \caption{The hyper-parameters of the boosted tree user model}
-        \label{table:fm param}
+        \label{table:xgboost param}
         \end{table}
 
     \subsection{Result}
@@ -108,7 +181,7 @@
         We use the \verb|Keras|\cite{chollet2015keras} Python library to build the neural network.
         The neural network consists of a LSTM layer and a fully connected layer.
         In addition to features at the current time step,
-        the input vector also contains features of the user's five previous submissions
+        the input vector also contains features of the user's five previous submissions ($\verb|lookback| = 5$)
         and whether those submissions were accepted.
         The output dimension of the LSTM layer is 10.
         The fully connected layer only has a scalar output activated by the sigmoid function.
