@@ -1,19 +1,51 @@
 %# -*- coding: utf-8-unix -*-
-%%==================================================
-%% abstract.tex for SJTU Master Thesis
-%%==================================================
+% !TEX program = xelatex
+% !TEX root = ../thesis.tex
 
 \begin{abstract}
 
-\todo{摘要}
+    编程教育吸引了全社会的关注，包括从小学生到计算机专业大学生的各个群体，也包括从商业公司的产品到国家层面的政策指导。
+    在线评测系统的诞生给学生们带来了主动练习编程的独特机会。
+    轻点鼠标，学生们就能方便地访问到在线评测系统上提供的成千上万道题目。
+    利用在线评测系统，学生们在自主尝试解决课外的习题时，
+    无须付出任何诸如聘请家庭教师之类的人力成本，就能瞬间得到对题目解法的高质量的反馈。
+    然而，学生们如果缺乏有经验的老师中指导，常常会不知道应该去尝试在线评测系统上面的哪些题目。
+    而有老师自身也是凭借经验挑选题目，缺乏统计数据的支撑。
 
-\keywords{\large 上海交大 \quad 饮水思源 \quad 爱国荣校}
+    近些年的研究表明机器教学方法同样适用于人类学生。
+    我们提出一个基于机器教学的智能在线评测系统，借此为学生们定制属于他们自己的训练题库，因材施教。
+    我们使用增强学习算法来为学生们设计题库。
+    为了解决增强学习算法的训练过程需要大量交互数据的问题，
+    我们首先使用真实的在线评测系统的提交记录训练一个用户模型，对学生的水平进行建模，然后让增强学习算法与这个用户模型进行交互。
+
+\keywords{\large 编程教育 \quad 在线评测系统 \quad 增强学习 \quad 机器教学 \quad 机器学习}
 \end{abstract}
 
 \begin{englishabstract}
 
-\todo{English abstract}
+    Programming education has attract attention of the whole society,
+    from primary school students to computer science majors,
+    from products of commercial companies to nation-level policy guidance.
+    The invention of online judges brought students a unique opportunity of practice programming proactively.
+    Thousands of problems are easily accessible to students on online judges within a single click,
+    where they can have consistent feedback instantly without any cost of manpower like private tutors
+    whenever they attempt to solve an extracurricular problem.
 
-\englishkeywords{\large SJTU, master thesis, XeTeX/LaTeX template}
+    However, students without advice of experienced teachers often do not know which problems to do.
+    Experienced teachers themselves pick problems in an ad-hoc manner,
+    lacking the support of data and statistical analysis.
+
+    Recent researches show that machine teaching techniques can also apply to human students.
+    We propose to build an intelligent online judge system with machine teaching techniques
+    so that it can help students to find their own optimal problem set.
+    We use a reinforcement learning algorithm to design the problem set.
+    To tackle with the requirement of the large number of interactive data
+    during the training process of the reinforcement learning agent,
+    we firstly fit a user model that captures students mindset using submission records from real-world online judges,
+    then let the reinforcement learning agent interact with the user model.
+
+    \todo{experiment analysis}
+
+\englishkeywords{\large Programming Education, Online Judge, Reinforcement Learning, Machine Teaching, Machine Learning}
 \end{englishabstract}
 
