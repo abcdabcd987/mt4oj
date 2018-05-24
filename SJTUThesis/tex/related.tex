@@ -5,6 +5,8 @@
 \chapter{Related Works}
 \label{chap:related}
 
+    \todo{tense}
+
 \section{Machine Teaching}
 
     Machine teaching is not a brand new research topic.
@@ -30,7 +32,71 @@
     They also provide a mixed-integer nonlinear programming-based algorithm for general learners.
 
     Machine teaching applications in cognitive psychology and education show potential impacts on the real world.
-    \textcite{khan2011humans} 
+    \textcite{khan2011humans} proposed a theoretical framework which assumes a teaching goal of
+    minimizing the learner's expected generalization error at each iteration.
+    The study extends the standard teaching dimension model and
+    offers a theoretical justification for curriculum learning.
+    \textcite{Patil2014} applies a machine teaching procedure
+    to a cognitive model that is limited capacity as humans are.
+    Based on the human study of an one-dimensional classification task they conducted,
+    they found that the machine teacher recommends idealized training sets.
+
+\section{Second Language Learning}
+
+    Second language learning is a hot market where computer aided teaching methods play an important role.
+    One key aspect of second language learning is to memorize the vocabulary.
+    There are several commercial software that help students with the vocabulary,
+    such as Duolingo, Shanbay, Supermemo, and so on. \todo{cite}
+    They tackle this problem in part by using interaction data to estimate student proficiency and recommend content.
+    Efficient language learning requires deep understanding of human cognition.
+    It also attracts attention of researchers in varies of areas.
+
+    In 1885, Ebbinghaus found that people tend to remember things more effectively
+    if they use spaced repetition practice as opposed to massed practice. \cite{ebbinghaus2013memory}
+    This is called the spacing effect.
+    Therefore, vocabulary software usually designs the learning plan according to \emph{spaced repetition models}.
+    Central to the theory of memory is the Ebbinghaus model, also known as the \emph{forgetting curve},
+    which approximates forgetting with an exponential curve \cite{bliss1993synaptic}.
+    The probability of recalling an item is \cite{reddy2016unbounded}
+    \[ Z \sim \mathrm{Bernoulli}\left( e^{-\theta\cdot\frac{D}{S}} \right) \]
+    where $\theta$ is the item difficult,
+    $D$ is the time elapsed since the item was last reviewed,
+    $S$ is the student's memory strength for the item.
+
+    \textcite{pimsleur1967memory} made an early attempt to put spaced repetition to practical use,
+    whereby new vocabulary is introduced and then tested at exponentially increasing intervals,
+    interspersed with the introduction or review of other vocabulary.
+    However, this approach is limited since the schedule is pre-recorded and cannot adapt to the learner's actual ability.
+    \textcite{leitner1972so} proposed a different spaced repetition algorithm intended for use with flashcards.
+    \todo{maybe a figure from settles2016trainable?}
+    It is more adaptive than Pimsleur's,
+    since the spacing intervals can increase or decrease depending on student performance.
+    \textcite{settles2016trainable} proposed \emph{half-life regression} model,
+    combined psychological theory with modern machine learning techniques.
+    Instead of estimating the item difficulty and the student's memory strength using domain experience,
+    they use the history of students' interactions with flashcards to fit a linear model:
+    \[ Z \sim \mathrm{Bernoulli}\left( \exp\left( -\frac{D}{\exp(\bm{\theta}^T\bm{x})} \right)\right) \]
+    where $\bm{x}$ is the input features and $\bm{\theta}$ is the parameters.
+
+\section{Reinforcement Learning}
+
+    Recent researches show that reinforcement learning
+    is highly competitive to human players when playing games.
+    \textcite{mnih_human-level_2015} presented the DQN algorithm and demonstrated that
+    the DQN agent trained in end-to-end fashion is able to achieve a level comparable to
+    professional human game testers across dozens of Atari games.
+    DeepMind's AlphaGo\cite{silver2016mastering}
+    has even the best professional human Go game player in the world \cite{silver2017mastering}.
+
+    On the education field, researchers has made several attempts.
+    \textcite{rafferty2016faster} formulated teaching as a
+    partially observable Markov decision process planning problem.
+    They presented approximate methods for finding optimal teaching actions,
+    given the large state and action spaces that arise in teaching.
+    \textcite{reddy_accelerating_2017} proposed a spaced repetition model
+    that learns a policy that directly operates on raw observations of the study history
+    using a reinforcement learning algorithm,
+    showing that model-free scheduling is competitive against widely-used heuristics.
 
 
 
