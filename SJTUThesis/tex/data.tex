@@ -8,19 +8,25 @@
 
 \section{Data Overview}
 
-    ACM Honors Class \todo{cite} of Shanghai Jiao Tong University is a elite program
+    ACM Honors Class\cite{acmclass} of Shanghai Jiao Tong University is a elite program
     that cultivates computer scientists and top tier leaders.
     It has won the champion of ACM-ICPC for several times.
     And many students in ACM Honors Class have OI backgrounds.
     \todo{rephrase}
 
-    The Online Judge of ACM Honors Class \todo{cite} starts in late 2011.
+    The Online Judge\cite{acmoj} of ACM Honors Class starts in late 2011.
     At first, it only served the internal needs of ACM Honors Class.
     Programming-related courses such as C++ Programming, Data Structures,
     and Principle and Practice of Computer Algorithms,
     used the Online Judge to assign homework and hold exams.
     The ACM-ICPC team of SJTU organized several selection contests on the online judge.
-    \todo{snapshot of the OJ}
+
+    \begin{figure}[htp]
+        \centering
+        \includegraphics[width=0.62\textwidth]{img/acmoj.png}
+        \caption{Snapshot of the status page of the OnlineJudge}
+        \label{fig:acmoj}
+    \end{figure}
 
     As ACM Honors Class expanded its influences, the Online Judge started to serve more people.
     Several departments, including School of Electronic Information and Electrical Engineering,
@@ -69,11 +75,18 @@
     Examining data in database management systems would be painful.
     Hence, we built a development tool called \texttt{dev-helper}
     that helps researchers better understand the data.
-    \texttt{dev-helper} is a web application based on the Flask \todo{cite} web framework.
+    \texttt{dev-helper} is a web application based on the \texttt{Flask}\cite{flask} web framework.
     It retrieve the raw data from the database and also read processed feature from the filesystem.
     It can show information of a specific problem to researchers.
     It also provides a function that displays a random problem.
-    The information page of a problem includes the following parts: \todo{snapshot}
+    The information page of a problem includes the following parts (See Figure \ref{fig:dev-helper}):
+
+    \begin{figure}[htp]
+        \centering
+        \includegraphics[width=0.62\textwidth]{img/dev-helper.pdf}
+        \caption{Snapshot of \texttt{dev-helper}}
+        \label{fig:dev-helper}
+    \end{figure}
 
     \begin{itemize}
         \item The description of the problem.

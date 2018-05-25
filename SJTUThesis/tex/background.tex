@@ -13,15 +13,15 @@
     \subsection{Programming Education}
 
         As we walk into a century surrounded by all kinds of computing devices,
-        programming skill gains more and more attention. \todo{cite}
+        programming skill gains more and more attention.
         Universities used to teaching programming to merely computer science majored students,
-        but more and more of them are opening the course to all.  \todo{cite}
+        but more and more of them are opening the course to all.
 
         One part of programming education is mastering one programming language.
         Mechanisms of modern computers may be too complicated for non computer science majored students to learn,
         but thanks to the abstractions of processors, operating systems, and high-level programming languages,
         it becomes easier and easier to program computers to do what users want.
-        The most popular high-level programming languages includes C++, Python, Java, and so on. \todo{cite}
+        The most popular high-level programming languages includes C++, Python, Java, and so on.
         Instead of dealing with registers and memory addresses using processors' instruction set,
         high-level programming languages bring up concepts like variables, arrays, expressions, loops, functions,
         threads, processes, and other computer science abstractions.
@@ -34,7 +34,7 @@
         There are mind sports specially focus on algorithms.
         For instance, ACM International Collegiate Programming Contest (\emph{ACM-ICPC}) is an annual
         competitive programming competition among the universities of world.
-        In 2017, 49,935 students from 3,098 universities in 111 countries participated. \todo{cite (wiki)}
+        In 2017, 49,935 students from 3,098 universities in 111 countries participated. \cite{acmicpc_fact_sheet}
         Companies value this kind of thinking skills, as well.
         It is a common practice for companies to ask algorithm puzzles when interviewing candidate programmers.
 
@@ -82,9 +82,9 @@
             However, it is likely that there are several alternative solutions to the same problem
             with the same complexity if not better.
             For instance, suppose an assignment can reduce to a minimum spanning tree problem
-            and the author expects the Prim algorithm.  \todo{cite Prim}
+            and the author expects the Prim algorithm. \cite{cheriton1976finding}
             A student might turn in a solution with Kruskral algorithm which is also an algorithm that
-            solves the minimum spanning tree problem.  \todo{cite Kruskral}
+            solves the minimum spanning tree problem. \cite{kruskal1956shortest}
             In this case, if the grader is not aware of Kruskral algorithm, the grader might give a wrong verdict
             because Kruskral algorithm looks completely different from Prim algorithm, i.e. the standard solution.
             Notice that this is not the fault of the grader, because the grader might be a teaching assistant
@@ -125,13 +125,26 @@
 
             Because of understanding students' solution costs graders lots of energy,
             subtle mistakes hidden in details often escape from being found.
-            For example, supposing the standard solution is Floyd algorithm, \todo{cite}
+            For example, supposing the standard solution is Floyd algorithm, \cite{ingerman1962algorithm}
             the grader might expect students' solutions to have two kinds of patterns:
             three nested loops and a dynamic programming equation.
             However, the solution might mixing up the permutation of the three loop variables,
             which makes the algorithm no longer correct.
             The grader might not be able to find such subtle an error.
-            \todo{correct and incorrect floyd code}
+
+            \begin{lstlisting}[language=Python]
+# Correct Algorithm Fragments:
+for k in range(len(V)):
+    for i in range(len(V)):
+        for j in range(len(V)):
+            dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+
+# Incorrect Algorithm Fragments:
+for i in range(len(V)):
+    for j in range(len(V)):
+        for k in range(len(V)):
+            dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+            \end{lstlisting}
 
         \subsubsection{Low Scalability}
 
@@ -277,22 +290,23 @@
         Due to its overwhelming superiority,
         universities widely integrate online judges with programming-related courses \cite{Li2005}.
         There are dozens of popular online judges.
-        Some of them are famous world-wide, such as CodeForces, TopCoder, SPOJ, uVA, and so on. \todo{cite}
+        Some of them are famous world-wide, such as CodeForces\cite{CodeForces}, TopCoder\cite{Topcoder},
+        SPOJ\cite{SPOJ}, uVA\cite{uva}, and so on.
         Online judges can roughly divide into three categories.
 
-        One is maintained by universities, such as POJ, HDU, and so on. \todo{cite}
+        One is maintained by universities, such as POJ\cite{poj}, HDU\cite{hdu}, and so on.
         The university's ACM-ICPC participants actively train on these online judges.
         In addition, these online judges also serve programming courses.
         Teaching assistants hand out homework assignments and organize exams on online judges.
 
         Another is maintained by high schools
         or retired Olympiad in Informatics (\emph{OI}) participants,
-        such as LibreOJ, and so on. \todo{cite}
+        such as LibreOJ\cite{loj}, and so on.
         Because most high schools do not teach programming systematically,
         the only purpose of these kind of online judges is their internal OI training.
 
-        The last category is operated by commercial companies. \todo{cite; TODO: marong's OJ}
-        LeetCode, for example, focus on the interview problems ask by big companies.
+        The last category is operated by commercial companies.
+        LeetCode\cite{leetcode}, for example, focus on the interview problems ask by big companies.
         Users need to pay for the full problem set and solutions with high quality explanations.
         In China, the market of private tutoring on competitive programming competitions is getting larger.
         Some commercial companies build online judges, compose series of problems, organize contests,
@@ -349,7 +363,6 @@
             Previous subsection has described how a automatic grader works.
 
         \subsubsection{Security Concerns}
-            \todo{cite security papers}
 
             The code automatic graders compile and run is submitted by users from the Internet
             which is untrusted and can even be malicious.
@@ -370,15 +383,14 @@
             If students' program tries to invoke a forbidden system call or with undesired arguments,
             the automatic grader will immediately kill the process and give ``Runtime Error'' verdict.
 
-            Another technology online judges use to further improve security is \emph{AppArmor}
+            Another technology online judges use to further improve security is \emph{AppArmor} \cite{apparmor}
             which is a Linux kernel enhancement to confine programs to a limited set of resources.
             It can mediate file access, library loading, execution of applications, coarse-grained network,
             capabilities, \texttt{ptrace}, and so on.
-            \todo{cite https://wiki.ubuntu.com/Security/Features}
 
             Although these constraints help improve security,
             it can sometimes block the execution of a benign program,
-            especially if the online judge supports variety of programming languages.
+            especially if the online judge supports variety of programming languages (See Figure \ref{fig:codeforces-languages}).
             For instance, the interpretation of a Java source code requires the permission to read
             Java library files and the ability to spawn threads for the just-in-time (\emph{JIT}) compiler to run.
             Therefore, the system administrator of a online judge need to carefully tune the security policy configuration.
@@ -387,7 +399,12 @@
             It requires the system administrator to be familiar with the compiler and the execution runtime
             of each programming language to write a appropriate security policy,
             which is not feasible for most online judge organizers.
-            \todo{snapshot of programming languages on codeforces}
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.62\textwidth]{img/codeforces-languages.png}
+                \caption{CodeForces supports a large number of programming languages}
+                \label{fig:codeforces-languages}
+            \end{figure}
 
             Recently, \texttt{cgroups} and Linux namespaces features enables operating system level virtualization.
             Container technologies like \emph{LXC} and \emph{Docker} make limiting resources easier.
@@ -402,9 +419,16 @@
             Keep in mind that containers are merely isolation provided by Linux kernel.
             Containers and the host share the same kernel.
             Exploiting kernel vulnerabilities might result in the malicious program escaping from the container.
+            \cite{shapira_escape_2017}
             For an extra level of security,
             system administrators might run the automatic grader container inside some virtual machine hypervisor.
-            \todo{diagram of different layers of isolation}
+
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.62\textwidth]{img/isolation.pdf}
+                \caption{Virtual Machine (left) and Container (right)}
+                \label{fig:isolation}
+            \end{figure}
 
         \subsubsection{Contests}
 
@@ -426,13 +450,21 @@
             The total score is the sum of credits of all problems, ignoring submission time.
 
             Ranking system is a great stimulation for participants.
+            Figure \ref{fig:codeforces-rating} shows rating changes on CodeForces of a user called \texttt{tourist}.
             Online judges with ranking systems update each participants ranking score
             after the contest has finished.
-            The ranking systems are usually variants of the Elo rating system. \todo{cite elo, tc, cf}
+            The ranking systems are usually variants \cite{bailey_algorithm_2018,mirzayanov_open_2015}
+            of the Elo rating system \cite{elo1978rating}.
             It takes two factors into account:
             the participant's current ranking, and the ranking of other participants.
             It roughly reflects a participant's level.
-            \todo{snapshot of cf ranking}
+
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.62\textwidth]{img/codeforces-rating.png}
+                \caption{Rating changes on CodeForces of a user called \texttt{tourist}.}
+                \label{fig:codeforces-rating}
+            \end{figure}
 
             The contest feature can also serve as other purpose.
             For example, teachers can hold a exam on the online judge
@@ -442,7 +474,8 @@
             set the start and end date (which usually spans days or a few weeks).
             The scoreboard precisely shows whether a student has finished all the assignments.
 
-        \subsubsection{Virtual Judge} \todo{cite; TODO: diagram of the delegation process}
+        \subsubsection{Virtual Judge}
+            \todo{diagram of the delegation process}
 
             High quality problems span different online judges.
             Sometimes, students might need to register a new account on a newly visited online judge
@@ -450,7 +483,7 @@
             Sometimes, tutors of competitive programming competitions might want to organize an exam
             of which problems are from different online judges,
             some of which does not even have a contest feature.
-            To deal with these issues, the virtual judge creates a problem-centric platform,
+            To deal with these issues, the virtual judge \cite{vjudge} creates a problem-centric platform,
             breaking the boundary of different online judges.
 
             The ``virtual'' judge is not a ``real'' judge in the sense that it does not own any problems,
@@ -526,12 +559,18 @@
     The definition of ``optimal'' varies.
     For instance, it can be the size of the training set.
 
+    \begin{figure}[!htp]
+        \centering
+        \includegraphics[width=0.4\textwidth]{img/machine-teaching-vs-machine-learning.pdf}
+        \caption{Machine Teaching vs. Machine Learning. Credit to the figure: \textcite{Zhu2015}.}
+        \label{fig:machine-teaching-vs-machine-learning}
+    \end{figure}
+
     \cite{Zhu2018} views machine teaching as an inverse problem to machine learning.
     Given $D \in \mathbb{D}$ and $A \in \mathbb{A}$, machine learning results in a model $A(D) \in \Theta$.
     Given $\theta^* \in \Theta$ and $A \in \mathbb{A}$,
     there is a subspace $A^{-1}(\theta^*) \subseteq \mathbb{D}$ of training set space. 
     Training $A$ with training set inside $A^{-1}(\theta^*)$ results in the target model $\theta^*$.
-    \todo{graph}
 
     Although a ``teacher'' knows $\theta^*$,
     it is likely that the ``teacher'' cannot directly ``hard wire''the ``learner''
@@ -673,8 +712,8 @@
 
     In other words, the computation of both the logistic regression model and its gradient is fast.
     Consequently, logistic regression model is widely adopted in the industry,
-    especially where computation time is limited, such as click-through-rate estimation and recommendation systems.
-    \todo{cite}
+    especially where computation time is limited, such as click-through-rate estimation \cite{DBLP:journals/corr/WangZY16}
+    and recommendation systems.
 
     \subsection{Kernel Tricks}
 
@@ -719,11 +758,19 @@
         The function $k: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ is called a \emph{kernel} function.
 
         For example, consider a two dimension space.
-        Data points $(x_1, x_2)$ within a oval are positive samples and others are negative samples.
+        Data points $(x_1, x_2)$ within a oval are positive samples and others are negative samples
+        (See Figure \ref{fig:kernel-tricks}).
         In this case, it is not linear separable.
         Consider the feature map $\varphi((x_1, x_2)) = (x_1^2, \sqrt{2}x_1x_2, x_2^2)$.
         Now data becomes linearly separable. \cite{Rai2011}
-        \todo{figure}
+
+        \begin{figure}[!htp]
+            \centering
+            \includegraphics[width=0.62\textwidth]{img/kernel-tricks.png}
+            \caption{Transforming a set of non-linearly separable data points to a linearly separable one.
+                Credit to the figure: \textcite{Rai2011}.}
+            \label{fig:kernel-tricks}
+        \end{figure}
 
         The more general kernel is quadratic kernels.
         Consider data point $x = (x_1, x_2, \cdots, x_n)$.
@@ -808,7 +855,6 @@
         On the other hand, choosing small $k$ restricts the capability of the factorization machine,
         which in turn can reduce the noisy and leads to better generalization under sparsity,
         because there is not enough data to disclose the complicated pairwise interaction.
-        \todo{figure like https://www.zhihu.com/question/27043630}
 
         Although the complexity of calculating the score function of the factorization machine \ref{eq:fm}
         might seem to be $O(kn^2)$ if taking a naive approach,
@@ -861,7 +907,6 @@
         drawing the binary tree along with those criteria would give a clear explanation.
         A data analysis service provider can explain the model to the buyer by visualizing
         the decision tree without the need for the buyer to know statistic or machine learning knowledge.
-        \todo{example figure}
 
     \subsection{XGBoost}
 
@@ -891,9 +936,14 @@
 
     \subsection{Vanilla Recurrent Neural Networks}
 
-        \todo{RNN diagram (ref:http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-1-introduction-to-rnns/)}
+        \begin{figure}[!htp]
+            \centering
+            \includegraphics[width=0.62\textwidth]{img/rnn.pdf}
+            \caption{Unfolding of the vanilla recurrent neural network}
+            \label{fig:rnn}
+        \end{figure}
 
-        The diagram shows the unfold of the vanilla recurrent neural network.
+        Figure \ref{fig:rnn} shows the unfold of the vanilla recurrent neural network.
 
         \begin{itemize}
             \item $x_t$ is the input at time step $t$.
@@ -927,7 +977,7 @@
         It is capable of learning long-term dependencies.
         In addition to the input vector, the output vector, and the hidden state,
         it consists of three additional gates: the input gate, the output gate, and the forgot gate.
-        More formally, \todo{figure: http://colah.github.io/posts/2015-08-Understanding-LSTMs/}
+        More formally,
 
         \begin{align*}
             f_t &= \sigma_g(W_fx_t + U_fh_{t-1} + b_f) \\
@@ -971,6 +1021,14 @@
     In contrast to supervised learning where a fixed set of training data is given,
     reinforcement learning \emph{agents} interact with a \emph{environment} and therefore collect experience.
 
+    \begin{figure}[!htp]
+        \centering
+        \includegraphics[width=0.62\textwidth]{img/rl.pdf}
+        \caption{Diagram of reinforcement learning.}
+        \label{fig:rl}
+    \end{figure}
+
+    Figure \ref{fig:rl} shows the diagram of reinforcement learning.
     At the beginning, the environment shows the reinforcement learning agent
     a initial \emph{observation} $o_0 \in \mathcal{O}$.
     The reinforcement learning agent then decides which \emph{action} $a_t \in \mathcal{A}$ to take.
@@ -979,7 +1037,6 @@
     and also the new observation $o_{t+1} \in \mathcal{O}$.
     The process repeats indefinitely until reaching a terminal state,
     which finishes the \emph{episode}.
-    \todo{RL diagram}
 
     The core ideas behind reinforcement learning is inspired by animal psychology.
     Positive rewards encourage the agent to take similar actions.
@@ -1078,14 +1135,19 @@
         Due to the great performance of neural networks in many areas,
         recent developments tend to use neural networks as the approximation.
 
-        \todo{cite}
-
     \subsection{Asynchronous Advantage Actor Critic}
 
         Asynchronous Advantage Actor-Critic \cite{mnih_asynchronous_2016} (\emph{A3C}) algorithm is
         a conceptually simple and lightweight framework for deep reinforcement learning
         that uses asynchronous gradient descent for optimization of deep neural network controllers.
-        \todo{diagram}
+        Figure \ref{fig:a3c} gives the overview of the A3C algorithm.
+
+        \begin{figure}[htp]
+            \centering
+            \includegraphics[width=0.62\textwidth]{img/a3c.pdf}
+            \caption{Asynchronous Advantage Actor-Critic}
+            \label{fig:a3c}
+        \end{figure}
 
         Prior to the A3C algorithm, one of the most popular reinforcement learning algorithm was
         the Deep Q-Network (\emph{DQN}) algorithm. \cite{mnih_human-level_2015}
@@ -1144,7 +1206,7 @@
             The neural networks that estimate the policy and the value are called the actor and the critic respectively.
             The critic updates value function parameters $\theta_V$.
             The actor updates policy parameters $\theta_{\pi}$, in direction suggested by the critic,
-            which lead to more effective updates compared to other policy-based methods. \todo{cite}
+            which lead to more effective updates compared to other policy-based methods.
             Usually, the two neural networks actually the same one except for the output layers.
             In this way, the actor and the critic can have the same features extracted by the neural network.
 

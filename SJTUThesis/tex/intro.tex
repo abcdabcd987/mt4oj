@@ -18,11 +18,11 @@
     with both majors and non-majors fueling the surge.
     The significance of programming education has even rise to the country level.
     Since 2015, the Chinese government has been issuing guidelines encouraging schools
-    to experiment with STEM education, including coding. \todo{cite}
+    to experiment with STEM education, including coding. \cite{gov_2015,gov_2017}
     In America, there are discussions on why coding should be a mandatory class in high school.
     \cite{tim_bajrin_why_2014}
 
-    One part of programming education is mastering one programming language, like Python \todo{cite}.
+    One part of programming education is mastering one programming language, like Python \cite{python.org}.
     The other part would be learning programmatic thinking.
     Like any other skills, both subjects require students to practice repeatedly.
     Traditionally, students of a programming course do assignments and take exams
@@ -81,12 +81,21 @@
     On the other hand, a single interaction between the agent and the student takes a long time.
     Hence, it could take tens of years to train the agent if not impossible at all.
 
+    \begin{figure}[!htp]
+        \centering
+        \includegraphics[width=0.62\textwidth]{img/system-design.pdf}
+        \caption{System Design}
+        \label{fig:system-design}
+    \end{figure}
+
     Therefore, we developed another approach.
+    Figure \ref{fig:system-design} shows the design of our work.
     We firstly trained a \emph{user model} to capture students' mindsets using the existing submission records.
     Then, we programmed the reinforcement learning to interact with the user model.
     This real-time interaction enabled the successful training process.
+    And this reinforcement learning agent can in turn design problem sets for students.
 
-    \todo{diagram}
+
 
 
 
