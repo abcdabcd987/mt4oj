@@ -205,7 +205,7 @@
 
         \begin{figure}[!htp]
             \centering
-            \includegraphics[width=0.62\textwidth]{img/kernel-tricks.png}
+            \includegraphics[width=0.8\textwidth]{img/kernel-tricks.png}
             \caption{Transforming a set of non-linearly separable data points to a linearly separable one.
                 Credit to the figure: \textcite{Rai2011}.}
             \label{fig:kernel-tricks}
@@ -456,7 +456,7 @@
 
         \begin{figure}[!htp]
             \centering
-            \includegraphics[width=0.62\textwidth]{img/rnn.pdf}
+            \includegraphics[width=0.8\textwidth]{img/rnn.pdf}
             \caption{Unfolding of the vanilla recurrent neural network}
             \label{fig:rnn}
         \end{figure}
@@ -564,7 +564,74 @@
 
 \section{Counting Features}
 
-    \todo{counting feature: count before vs. after}
+    During the early stage of development, we observed some interesting data,
+    where the accuracy and the AUC of all user models were both nearly 1.
+    It was too perfect a result that we felt restless.
+    It turned out to be a bug in our feature extraction code.
+    The following simplified code shows the gist of the bug:
+
+    \begin{lstlisting}[language=Python]
+# Buggy Version
+for i, record in enumerate(submissions):
+    user = get_feature(record.user_id)
+    user.num_submit += 1
+    features[i].uf_num_submit = user.num_submit
+
+# Correct Version
+for i, record in enumerate(submissions):
+    user = get_feature(record.user_id)
+    features[i].uf_num_submit = user.num_submit
+    user.num_submit += 1
+    \end{lstlisting}
+
+    In our implementation, we use a data structure to keep statistics of each user,
+    which might turn into the value of features either directly or by some transformation.
+    Notice that in the buggy version, we accidentally use the updated statistics as features.
+    The resulting performance is shown in Table \ref{table:counting-feature}.
+
+    \begin{table}[hpbt]
+    \centering
+    \begin{tabular}{llcll}
+        \toprule
+        User Model & Feature Set & Counting Features & Accuracy & AUC \\
+        \hline
+        \midrule
+        FM      & Basic    & Buggy    & \verb|0.6877472027750164| & \verb|0.6835856799533652| \\
+        FM      & Basic    & Correct  & \verb|0.7121343514033714| & \verb|0.7185117691295371| \\
+        \hline
+        XGBoost & Basic    & Buggy    & \verb|0.7029230736690708| & \verb|0.7104618544225273| \\
+        XGBoost & Basic    & Correct  & \verb|0.7344169715941539| & \verb|0.7627939243244763| \\
+        \hline
+        RNN     & Basic    & Buggy    & \verb|0.7163222572389433| & \verb|0.7232273437233644| \\
+        RNN     & Basic    & Correct  & \verb|0.9135874278220775| & \verb|0.9554051182012199| \\
+        \hline
+        \hline
+        FM      & Extended & Buggy    & \verb|0.6936271917764758| & \verb|0.6580982070227229| \\
+        FM      & Extended & Correct  & \verb|0.9094735506250132| & \verb|0.8832827917648681| \\
+        \hline
+        XGBoost & Extended & Buggy    & \verb|0.7184056346369424| & \verb|0.7352554610590846| \\
+        XGBoost & Extended & Correct  & \verb|0.9538907337295628| & \verb|0.9895289713998086| \\
+        \hline
+        RNN     & Extended & Buggy    & \verb|0.7194526110958354| & \verb|0.7308123624422472| \\
+        RNN     & Extended & Correct  & \verb|0.9652805685399437| & \verb|0.9945197116689701| \\
+        \hline
+    \end{tabular}
+    \caption{Performance comparison of the buggy feature extraction code.}
+    \label{table:counting-feature}
+    \end{table}
+
+    We can see that the performance of the buggy version with extended feature set
+    is overwhelmingly ``better'' than the correct version.
+    Notice that the difference between the two versions is the sequential order between
+    updating statistics and outputting features.
+    Updating statistics in advance actually results in incorrect semantics.
+    The task of user model is to predict the chance of a user represented by the given user features
+    able to solve a given problem \emph{before the user really makes an attempt},
+    not after the user has already submitted a solution.
+    In other words, updating statistics in advance ``embeds'' the result of the submission in features.
+    User models might infer the label from features like \verb|mf_has_ac|.
+    Given labels, it is no doubt that user models can learn where the answer is.
+
 
 
 
