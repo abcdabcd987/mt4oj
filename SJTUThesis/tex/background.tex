@@ -473,7 +473,6 @@ for i in range(len(V)):
             The scoreboard precisely shows whether a student has finished all the assignments.
 
         \subsubsection{Virtual Judge}
-            \todo{diagram of the delegation process}
 
             High quality problems span different online judges.
             Sometimes, students might need to register a new account on a newly visited online judge
@@ -484,9 +483,16 @@ for i in range(len(V)):
             To deal with these issues, the virtual judge \cite{vjudge} creates a problem-centric platform,
             breaking the boundary of different online judges.
 
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.62\textwidth]{img/vjudge.pdf}
+                \caption{Diagram of virtual judge}
+                \label{fig:vjudge}
+            \end{figure}
+
             The ``virtual'' judge is not a ``real'' judge in the sense that it does not own any problems,
             nor does it run any automatic graders.
-            It acts like a proxy between students and different online judges.
+            It acts like a proxy between students and different online judges (See Figure \ref{fig:vjudge}).
             The virtual judge has a web crawler that retrieves problem descriptions from different online judges.
             Students can then read all problems across different online judges within the same website.
 

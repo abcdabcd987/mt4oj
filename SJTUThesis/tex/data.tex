@@ -11,8 +11,7 @@
     ACM Honors Class\cite{acmclass} of Shanghai Jiao Tong University is a elite program
     that cultivates computer scientists and top tier leaders.
     It has won the champion of ACM-ICPC for several times.
-    And many students in ACM Honors Class have OI backgrounds.
-    \todo{rephrase}
+    And many students in ACM Honors Class have programming experience in high school.
 
     The Online Judge\cite{acmoj} of ACM Honors Class starts in late 2011.
     At first, it only served the internal needs of ACM Honors Class.
@@ -60,8 +59,6 @@
     For research purpose, it does not matter which person in real world an account corresponds to,
     as long as it is still distinguishable between different users.
     Therefore, we map the usernames in the submission records to unique numbers.
-
-    \todo{looks too short}
 
 \section{\texttt{dev-helper}: The Development Tool}
 
@@ -145,11 +142,11 @@
 
 \section{Feature Extraction}
 
-    \todo{make it longer: reason about the features; implementation details: concatenation}
-
     \subsection{Problem Features}
 
         We went through all submission records and extracted the problem features shown in Table \ref{table:problem features}.
+        User models should learn some characteristics of a problem from these features.
+        For example, a problem with low acceptance rate and long average code length might be indeed more difficult.
 
         \begin{table}[hpbt]
         \begin{adjustwidth}{-1.5cm}{-1.5cm}
@@ -189,6 +186,11 @@
         All statistics count before the submission.
         Features above the separator is the basic feature set.
         The extended feature set includes all features in the table.
+        Although we assume all students have the same cognitive model,
+        different students have different preferences
+        which user models might be able to capture from these features.
+        For example, a student's code might be significantly longer than the average
+        because he or she writes detailed explanation of the code as comments.
 
         \begin{table}[hpbt]
         % \begin{adjustwidth}{-1.5cm}{-1.5cm}
@@ -255,7 +257,31 @@
         % \end{adjustwidth}
         \end{table}
 
-        \todo{extended feature set}
+        The reason why we need to have the basic feature set
+        instead of using the extended feature set all the time
+        is that features in the extended feature set would be missing
+        during the simulation process used by the reinforcement learning agent.
+        During the simulation process, we can properly update the counting features.
+        Whenever the simulator need to pretend the user to submit a solution,
+        we simply increment the counter of submissions without the need to generate all submission details.
+        Other features, are features of submission details.
+        For example, in order to know the time interval between the consecutive submissions,
+        we would need to know the submission time of a non-existing submission,
+        which does not exist.
+        Although there are some workarounds, for example,
+        use another machine learning model to estimate these features,
+        or use simply use the average from previous records,
+        we suspect the effectiveness of feature estimations.
+        Therefore, we only use the basic feature set in reinforcement learning.
+
+    \subsection{Implementation Details}
+
+        In our implementation, we save different features separately.
+        Then we generate the input data to user models by concatenating features specified by strings as column vectors.
+        This idea can make the feature selection process more flexible.
+        The process of generating each feature costs large amount of memory and requires heavy computation.
+        In the contrary, the concatenation is fast with low memory footprint.
+
 
 
 
