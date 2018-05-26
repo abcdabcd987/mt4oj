@@ -6,7 +6,7 @@
 
     编程教育吸引了全社会的关注，包括从小学生到计算机专业大学生的各个群体，也包括从商业公司的产品到国家层面的政策指导。
     在线评测系统的诞生给学生们带来了主动练习编程的独特机会。
-    轻点鼠标，学生们就能方便地访问到在线评测系统上提供的成千上万道题目。
+    只需轻点鼠标，学生们就能方便地访问到在线评测系统上提供的成千上万道题目。
     利用在线评测系统，学生们在自主尝试解决课外的习题时，
     无须付出任何诸如聘请家庭教师之类的人力成本，就能瞬间得到对题目解法的高质量的反馈。
     然而，学生们如果缺乏有经验的老师中指导，常常会不知道应该去尝试在线评测系统上面的哪些题目。
@@ -17,8 +17,9 @@
     我们使用增强学习算法来为学生们设计题库。
     为了解决增强学习算法的训练过程需要大量交互数据的问题，
     我们首先使用真实的在线评测系统的提交记录训练一个用户模型，对学生的水平进行建模，然后让增强学习算法与这个用户模型进行交互。
+    实验数据表明，使用我们的用户模型提供的评测指标，我们的推荐算法表现优于基准算法以及人类教师。
 
-\keywords{\large 编程教育 \quad 在线评测系统 \quad 增强学习 \quad 机器教学 \quad 机器学习}
+\keywords{\large 编程教育 \quad 在线评测系统 \quad 增强学习 \quad 机器教学 \quad 机器学习 \quad 推荐系统}
 \end{abstract}
 
 \begin{englishabstract}
@@ -43,9 +44,9 @@
     during the training process of the reinforcement learning agent,
     we firstly fit a user model that captures students mindset using submission records from real-world online judges,
     then let the reinforcement learning agent interact with the user model.
+    Experiment data shows that our algorithm outperforms baseline methods and human teachers,
+    based on metrics of our user model.
 
-    \todo{experiment analysis}
-
-\englishkeywords{\large Programming Education, Online Judge, Reinforcement Learning, Machine Teaching, Machine Learning}
+\englishkeywords{\large Programming Education, Online Judge, Reinforcement Learning, Machine Teaching, Machine Learning, Recommendation System}
 \end{englishabstract}
 
