@@ -27,8 +27,9 @@ def np_divide(a, b):
 
 
 class Environment:
-    def __init__(self, lookback):
+    def __init__(self, lookback, episode_length=50):
         self._lookback = lookback
+        self._episode_length = episode_length
 
         logging.info('reading data')
         with shelve.open('data/problem_features.shelf', flag='r') as shelf:
@@ -132,11 +133,12 @@ class Environment:
         return self._num_problems
 
 
-    def new_episode(self):
+    def new_episode(self, row_idx=None):
+        idx = random.randrange(self._data_num_rows) if row_idx is None else row_idx
+
         self._cur_user_features = np.zeros((self._lookback+1, self._num_user_features), dtype=np.float32)
         self._cur_problem_ids = [None] * (self._lookback+1)
         self._cur_is_previous_accepted = [False] * (self._lookback+1)
-        idx = random.randrange(self._data_num_rows)
         user_id = bisect.bisect_right(self._user_offsets, idx)
         user_row_offset = idx - self._user_offsets[user_id-1] if user_id != 0 else idx
 
@@ -156,9 +158,8 @@ class Environment:
 
 
     def step(self, action):
-        EPISODE_NUM_RECOMMEND = 50
-        if self._cur_num_recommend >= EPISODE_NUM_RECOMMEND:
-            logging.warning('recommend more than %d problems', EPISODE_NUM_RECOMMEND)
+        if self._cur_num_recommend >= self._episode_length:
+            logging.warning('recommend more than %d problems', self._episode_length)
         problem_id = self._map_idx_problem_id[action]
 
         # pretend the user to solve this problem
@@ -181,7 +182,7 @@ class Environment:
         self._cur_score = self._calc_student_score()
         reward = self._cur_score - last_score
         self._cur_num_recommend += 1
-        done = self._cur_num_recommend >= EPISODE_NUM_RECOMMEND
+        done = self._cur_num_recommend >= self._episode_length
         return self._cur_user_features, reward, done
 
 

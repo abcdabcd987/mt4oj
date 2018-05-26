@@ -277,6 +277,51 @@ def run_make_features(db):
     cur.close()
 
 
+def run_makedata_handpick(db):
+    with shelve.open('data/problem_features.shelf') as shelf:
+        pf = shelf['pf']
+
+    cur = get_cur(db)
+    cur.execute('SELECT * FROM reports WHERE id=%s', (636, ))
+    report = cur.fetchone()
+    report_problem_list = tuple(map(int, report['problem_list'].strip().splitlines()))
+
+    cur.execute('SELECT DISTINCT owner FROM records WHERE submit_datetime BETWEEN %s AND %s AND problem_id IN %s', (report['start_datetime'], report['end_datetime'], report_problem_list))
+    report_student_list = [x['owner'] for x in cur]
+    init_submissions = {}
+    last_submissions = {}
+
+    cur.execute('SELECT COUNT(*) as count FROM records WHERE submit_datetime<%s AND language=%s', (report['end_datetime'], 'C++'))
+    cnt = cur.fetchone()['count']
+    cur.close()
+
+    cur = get_cur(db, named=True)
+    cur.execute('SELECT owner, problem_id, result, submit_datetime FROM records WHERE submit_datetime<%s AND language=%s ORDER BY id', (report['end_datetime'], 'C++'))
+    cnt_rows = 0
+    report_student_set = set(report_student_list)
+    for record in tqdm(cur, total=cnt):
+        if record['result'] in ['Compile Error', 'System Error', 'Unknown']:
+            continue
+        problem_id = record['problem_id']
+        p = pf.get(problem_id, None)
+        if p is None:
+            continue  # problem not exist
+
+        user_id = record['owner']
+        if user_id in report_student_set:
+            if record['submit_datetime'] < report['start_datetime']:
+                init_submissions[user_id] = cnt_rows
+            if record['submit_datetime'] < report['end_datetime']:
+                last_submissions[user_id] = cnt_rows
+        cnt_rows += 1
+    cur.close()
+
+    students = set(init_submissions.keys()) & set(last_submissions.keys())
+    with shelve.open('data/handpick.shelf') as shelf:
+        shelf['problems'] = report_problem_list
+        shelf['users'] = [dict(user_id=u, init=init_submissions[u], last=last_submissions[u]) for u in students]
+
+
 def run_makedata_from_features():
     features = [
         'uf_num_submit',
@@ -365,6 +410,7 @@ def main():
     db = get_db()
     # run_make_problem_features(db)
     # run_make_features(db)
+    # run_makedata_handpick(db)
     run_makedata_from_features()
 
 

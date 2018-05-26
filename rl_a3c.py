@@ -10,25 +10,6 @@ import time
 import os
 GPUS = list(map(int, os.environ.get('CUDA_VISIBLE_DEVICES', '-1').split(',')))
 
-# -----
-parser = argparse.ArgumentParser(description='Training model')
-parser.add_argument('--lookback', default=5, type=int)
-parser.add_argument('--processes', default=4, help='Number of processes that generate experience for agent', dest='processes', type=int)
-parser.add_argument('--lr', default=0.001, help='Learning rate', dest='learning_rate', type=float)
-parser.add_argument('--steps', default=80000000, help='Number of frames to decay learning rate', dest='steps', type=int)
-parser.add_argument('--batch_size', default=20, help='Batch size to use during training', dest='batch_size', type=int)
-parser.add_argument('--swap_freq', default=10, help='Number of frames before swapping network weights', dest='swap_freq', type=int)
-parser.add_argument('--checkpoint', default=0, help='Frame to resume training', dest='checkpoint', type=int)
-parser.add_argument('--save_freq', default=25000, help='Number of frames before saving weights', dest='save_freq', type=int)
-parser.add_argument('--queue_size', default=256, help='Size of queue holding agent experience', dest='queue_size', type=int)
-parser.add_argument('--n_step', default=5, help='Number of steps', dest='n_step', type=int)
-parser.add_argument('--beta', default=0.01, dest='beta', type=float)
-# -----
-args = parser.parse_args()
-
-
-# -----
-
 
 def build_network(input_shape, output_shape):
     from keras.models import Model
@@ -72,7 +53,7 @@ def value_loss():
 # -----
 
 class LearningAgent(object):
-    def __init__(self, lookback, state_size, action_size, batch_size, swap_freq):
+    def __init__(self, lookback, state_size, action_size, batch_size, swap_freq, beta):
         from keras.optimizers import RMSprop        
         # -----
         self.lookback = lookback
@@ -83,7 +64,7 @@ class LearningAgent(object):
 
         _, _, self.train_net, adventage = build_network(self.observation_shape, self.action_size)
         self.train_net.compile(optimizer=RMSprop(epsilon=0.1, rho=0.99),
-                               loss=[value_loss(), policy_loss(adventage, args.beta)])
+                               loss=[value_loss(), policy_loss(adventage, beta)])
 
         self.swap_freq = swap_freq
         self.swap_counter = self.swap_freq
@@ -111,7 +92,7 @@ class LearningAgent(object):
         return False
 
 
-def learn_proc(mem_queue, weight_dict, no):
+def learn_proc(args, mem_queue, weight_dict, no):
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUS[no % len(GPUS)]) if GPUS else '-1'
     from rl_common import Environment
@@ -131,11 +112,11 @@ def learn_proc(mem_queue, weight_dict, no):
     action_size = env.num_actions
     del state
     del env
-    agent = LearningAgent(args.lookback, state_size, action_size, batch_size=args.batch_size, swap_freq=args.swap_freq)
+    agent = LearningAgent(args.lookback, state_size, action_size, batch_size=args.batch_size, swap_freq=args.swap_freq, beta=args.beta)
     # -----
     if checkpoint > 0:
         print(' %5d> Loading weights from file' % (pid,))
-        agent.train_net.load_weights('data/a3c/%d.h5' % (args.game, checkpoint,))
+        agent.train_net.load_weights('data/a3c/%d.h5' % (checkpoint,))
         # -----
     print(' %5d> Setting weights in dict' % (pid,))
     weight_dict['update'] = 0
@@ -225,7 +206,7 @@ class ActingAgent(object):
         self.observations = observation
 
 
-def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
+def generate_experience_proc(args, mem_queue, weight_dict, no, episode_reward_queue):
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUS[no % len(GPUS)]) if GPUS else '-1'
     from rl_common import Environment
@@ -247,7 +228,7 @@ def generate_experience_proc(mem_queue, weight_dict, no, episode_reward_queue):
 
     if frames > 0:
         print(' %5d> Loaded weights from file' % (pid,))
-        agent.load_net.load_weights('data/a3c/%d.h5' % (args.game, frames))
+        agent.load_net.load_weights('data/a3c/%d.h5' % (frames,))
     else:
         import time
         while 'weights' not in weight_dict:
@@ -322,6 +303,20 @@ class LogExceptions(object):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Training model')
+    parser.add_argument('--lookback', default=5, type=int)
+    parser.add_argument('--processes', default=4, help='Number of processes that generate experience for agent', dest='processes', type=int)
+    parser.add_argument('--lr', default=0.001, help='Learning rate', dest='learning_rate', type=float)
+    parser.add_argument('--steps', default=80000000, help='Number of frames to decay learning rate', dest='steps', type=int)
+    parser.add_argument('--batch_size', default=20, help='Batch size to use during training', dest='batch_size', type=int)
+    parser.add_argument('--swap_freq', default=10, help='Number of frames before swapping network weights', dest='swap_freq', type=int)
+    parser.add_argument('--checkpoint', default=0, help='Frame to resume training', dest='checkpoint', type=int)
+    parser.add_argument('--save_freq', default=25000, help='Number of frames before saving weights', dest='save_freq', type=int)
+    parser.add_argument('--queue_size', default=256, help='Size of queue holding agent experience', dest='queue_size', type=int)
+    parser.add_argument('--n_step', default=5, help='Number of steps', dest='n_step', type=int)
+    parser.add_argument('--beta', default=0.01, dest='beta', type=float)
+    args = parser.parse_args()
+
     today = datetime.now().strftime('%Y%m%d-%H%M%S')
     filename = os.path.join('logs', 'a3c-{}.log'.format(today))
     logf = open(filename, 'w')
@@ -332,8 +327,8 @@ def main():
     pool = Pool(args.processes + 1, init_worker)
     try:
         for i in range(args.processes):
-            pool.apply_async(LogExceptions(generate_experience_proc), (mem_queue, weight_dict, i, episode_reward_queue))
-        pool.apply_async(LogExceptions(learn_proc), (mem_queue, weight_dict, args.processes))
+            pool.apply_async(LogExceptions(generate_experience_proc), (args, mem_queue, weight_dict, i, episode_reward_queue))
+        pool.apply_async(LogExceptions(learn_proc), (args, mem_queue, weight_dict, args.processes))
         pool.close()
 
         start_time = time.time()
