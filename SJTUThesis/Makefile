@@ -30,6 +30,9 @@ wordcount:
 	@perl texcount.pl $(THESIS).tex -inc -char    | awk '/total/ {getline; print "字符数　:",$$4}' 
 	@perl texcount.pl $(THESIS).tex -inc -ch-only | awk '/total/ {getline; print "中文字数:",$$4}' 
 
+copy-plain:
+	detex $(THESIS).tex | sed "s/^ *//" | awk '$$0 != "" {printf "%s ", $$0} $$0 == "" {printf "\n\n"}' | pbcopy
+
 clean :
 	-@latexmk -c -silent 2> /dev/null
 	-@rm -f $(TEX_DIR)/*.aux 2> /dev/null || true

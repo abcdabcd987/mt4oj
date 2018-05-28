@@ -7,7 +7,7 @@
     The training process of a reinforcement learning involves frequent interaction
     between the reinforcement learning agent and users.
     Deploying an unreliable reinforcement learning algorithm in production is not a feasible option.
-    On one hand, the agent is not well-trained, producing bad or misleading recommendations,
+    On the one hand, the agent is not well-trained, producing bad or misleading recommendations,
     which could jeopardize the education process.
     On the other hand, a single interaction between the agent and the student takes a long time.
     It takes hours if not days for a student to solve a problem,
@@ -27,7 +27,7 @@
     more precisely,
     it is the probability of the user able to solve the problem that we care about.
 
-    The training and validation data is from the submission records of the Online Judge.
+    The training and validation data are from the submission records of the Online Judge.
     We used the earliest 80\% records as the training set,
     and the most recent 20\% records is the validation set.
     For each submission record, the user features and the context features
@@ -42,7 +42,7 @@
     \subsection{Feature Scaling}
 
         The range of features in our feature set varies a lot.
-        For example, $\verb|uf_ac_rate| \in [0,1]$, but $\verb|uf_avg_bytes|$ can be a few thousands.
+        For example, $\verb|uf_ac_rate| \in [0,1]$, but $\verb|uf_avg_bytes|$ can be a few thousand.
 
         Feature scaling is a method to standardize the range of independent variables or features of data,
         making the learning process more robust.
@@ -64,9 +64,9 @@
 
         Classification accuracy, as the name suggests, is the ratio of
         the number of correct predictions to the total number of predictions made.
-        A overfitted model tend to have a big gap between the train accuracy and the validation accuracy.
+        An overfitted model tend to have a big gap between the the train accuracy and the validation accuracy.
 
-        Area under the receiver operating characteristic curve (\emph{AUC})
+        The area under the receiver operating characteristic curve (\emph{AUC})
         is another most widely used metrics in classification tasks.
         There can be several equivalent interpretations of AUC \cite{flach_putting_2007}:
 
@@ -90,13 +90,13 @@
     supervised learning and unsupervised learning.
 
     A supervised learning task learns a function based on example training data.
-    In supervised learning, each piece of training data consist of a pair of input vector
+    In supervised learning, each piece of training data consists of a pair of the input vector
     and the desired output, called \emph{label}.
     A supervised learning algorithm goes through the training data and infers the function
     which can be used to predict new examples.
     In contrast to the performance on the training data,
     researchers pay more attention to the ability of the model to correctly predict unseen data,
-    i.e. the capability of generalization.
+    i.e., the capability of generalization.
     Sometimes, predictions on the input training data can greatly outperform that on unseen data.
     In this case, the model is overfitted, meaning that the model has ``memorized'' the training data
     but did not ``learn''.
@@ -133,7 +133,7 @@
     l(w) = -\sum_{i=1}^m \left( y^{(i)}\log\left(\sigma(w^Tx^{(i)})\right) + (1-y^{(i)})\log\left(1-\sigma(w^Tx^{(i)})\right) \right)
     \]
 
-    It can be prove \cite{Ng2000} that the gradient of the loss function is
+    It can be proved \cite{Ng2000} that the gradient of the loss function is
 
     \[
     \nabla_w l(w) = \sum_{i=1}^m x^{(i)}\left(\sigma(w^Tx^{(i)}) - y^{(i)}\right)
@@ -148,7 +148,7 @@
     where $\eta$ is the learning rate.
 
     In other words, the computation of both the logistic regression model and its gradient is fast.
-    Consequently, logistic regression model is widely adopted in the industry,
+    Consequently, the logistic regression model is widely adopted in the industry,
     especially where computation time is limited, such as click-through-rate estimation \cite{DBLP:journals/corr/WangZY16}
     and recommendation systems.
 
@@ -160,7 +160,7 @@
         It cannot discover the relationship between different input features,
         i.e., different dimensions of the input vector.
 
-        For instance, in a recommendation system, there is usually three types of features: \cite{Ricci2011}
+        For instance, in a recommendation system, there are usually three types of features: \cite{Ricci2011}
 
         \begin{description}
             \item[User Features] Each user may have a set of attributes.
@@ -171,7 +171,7 @@
                 such as books on an online shop.
                 Items also have a set of characteristics.
                 For example, the author of a book.
-            \item[Context Features] These features reflects interactions between users and items.
+            \item[Context Features] These features reflect interactions between users and items.
                 Some features provide additional information,
                 for example, it can be it can be a user's rate on a specific book.
                 Others can be derived from user features and item features.
@@ -181,7 +181,7 @@
         it requires domain experts manually calculating context features.
 
         Mathematically, the data points are not always linearly separable.
-        Kernel tricks enables linear models like logistic regression to capture non-linear regression.
+        Kernel tricks enable linear models like logistic regression to capture non-linear regression.
 
         For all $x$ and $x'$ in the input space $\mathcal{X}$,
         certain functions $k(x, x')$ can be expressed as an inner product $\langle\cdot,\cdot\rangle_{\mathcal{V}}$
@@ -224,7 +224,7 @@
 
     \subsection{Limitation of Kernel Tricks}
 
-        Notice that, the linear combination of the transformed feature vector and the coefficients is
+        Notice that the linear combination of the transformed feature vector and the coefficients is
 
         \[
         w^T\varphi(x) = w_0 + \sqrt{2}\sum_{i=1}^n w_ix_i
@@ -234,10 +234,10 @@
         In other words, the number of parameters of a $n$-dimension input has $O(n^2)$ dimensions.
         However, it may not work well with recommendation systems.
 
-        The input vector of recommendation systems are usually sparse.
+        The input vector of recommendation systems is usually sparse.
         For example, there can be some one-hot features.
         A one-hot feature may span thousands of dimension.
-        There is only one dimension has non-zero value and the others are all zeros.
+        There is only one dimension has a non-zero value, and the others are all zeros.
 
         The blast of the number of parameters makes the training process inefficient.
         What's worse, in order to learn $w_{ij}$,
@@ -259,7 +259,7 @@
         \label{eq:fm}
         \end{equation}
 
-        where the the model parameters that have to be estimated are:
+        where the model parameters that have to be estimated are:
 
         \[
         w_0 \in \mathbb{R}, \quad w \in \mathbb{R}^n, \quad \bm{V} \in \mathbb{R}^{n \times k}
@@ -284,7 +284,7 @@
         \end{itemize}
 
         The difference between the factorization machine and kernel tricks is that
-        kernel tricks use a independent parameter for each pair of interaction, resulting in $O(n^2)$ parameters,
+        kernel tricks use an independent parameter for each pair of interaction, resulting in $O(n^2)$ parameters,
         but the factorization machine models the interaction by factorizing it, resulting in $O(nk)$ parameters.
         For large enough $k$, the factorization machine is able to express any interaction matrix $\bm{W}$ \cite{Rendle2010},
         therefore, the factorization machine is as expressive as kernel tricks.
@@ -368,20 +368,20 @@
 
 \section{Boosted Tree}
 
-        Decision tree is another widely used model for data analysis.
+        The decision tree is another widely used model for data analysis.
 
         A decision tree is a binary tree.
         Each node has exactly one parent (except for the only root node) and two children.
-        Each internal node split the input subspace into two halves by a certain criteria.
-        The leaves represents a category.
+        Each internal node split the input subspace into two halves by specific criteria.
+        The leaves represent a category.
 
-        Given a decision tree, the evaluation of a input is quite straight forward.
+        Given a decision tree, the evaluation of a input is quite straightforward.
         At each internal node, decide which children to go by check the criteria.
         Repeat the procedure above recursively until reaching a leaf node.
 
-        Similarly, the interpretation of a decision tree is also straight forward,
+        Similarly, the interpretation of a decision tree is also straightforward,
         which is its unique advantage over other machine learning algorithms.
-        Because each node has a certain criteria,
+        Because each node has specific criteria,
         drawing the binary tree along with those criteria would give a clear explanation.
         A data analysis service provider can explain the model to the buyer by visualizing
         the decision tree without the need for the buyer to know statistic or machine learning knowledge.
@@ -438,9 +438,9 @@
 \section{Recurrent Neural Networks}
 
     Recurrent neural networks are a family of neural networks for processing sequential data.
-    Traditional neural networks assumes the inputs are independent of each other,
+    Traditional neural networks assume the inputs are independent of each other,
     thus they cannot find connections inside the input of sequential data.
-    In order to process sequential data, the model need to know context information.
+    In order to process sequential data, the model needs to know context information.
     For example, predicting the next character in a sentence would heavily depend on
     characters came before it.
 
@@ -465,7 +465,7 @@
                 Interestingly, inputs may not be needed for each time step.
                 For instance, in the image captioning task,
                 the input presents only at the first time step which is the input image.
-                The recurrent neural network then produce the sentence step by step and character by character.
+                The recurrent neural network then produces the sentence step by step and character by character.
             \item $h_t$ is the hidden state at time step $t$.
                 Its computation depends on the previous hidden state and input of the current time step:
                 $h_t = f(Ux_t + Wh_{t-1})$.
@@ -533,7 +533,7 @@
     \subsection{Implementation}
 
         We use the \verb|Keras|\cite{chollet2015keras} Python library to build the neural network.
-        The neural network consists of a LSTM layer and a fully connected layer.
+        The neural network consists of an LSTM layer and a fully connected layer.
         In addition to features at the current time step,
         the input vector also contains features of the user's five previous submissions ($\verb|lookback| = 5$)
         and whether those submissions were accepted.

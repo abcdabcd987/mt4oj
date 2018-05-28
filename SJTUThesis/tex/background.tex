@@ -10,14 +10,14 @@
 
         As we walk into a century surrounded by all kinds of computing devices,
         programming skill gains more and more attention.
-        Universities used to teaching programming to merely computer science majored students,
+        Universities used to teach programming to merely computer science major students,
         but more and more of them are opening the course to all.
 
         One part of programming education is mastering one programming language.
-        Mechanisms of modern computers may be too complicated for non computer science majored students to learn,
+        Mechanisms of modern computers may be too complicated for non-computer science majored students to learn,
         but thanks to the abstractions of processors, operating systems, and high-level programming languages,
         it becomes easier and easier to program computers to do what users want.
-        The most popular high-level programming languages includes C++, Python, Java, and so on.
+        The most popular high-level programming languages include C++, Python, Java, and so on.
         Instead of dealing with registers and memory addresses using processors' instruction set,
         high-level programming languages bring up concepts like variables, arrays, expressions, loops, functions,
         threads, processes, and other computer science abstractions.
@@ -25,35 +25,35 @@
         The other part of programming education is learning programmatic thinking, in other words,
         algorithms and data structures, especially for computer science majored students.
         There may be several solutions to the same problem, but taking different approaches costs differently.
-        An $O(n\log n)$ algorithm better scales to a larger input comparing to an $O(n^2)$ algorithm.
+        An $O(n\log n)$ algorithm better scales to a larger input compared to an $O(n^2)$ algorithm.
         Programming also helps students cultivate thinking skills.
-        There are mind sports specially focus on algorithms.
+        There are mind sports especially focus on algorithms.
         For instance, ACM International Collegiate Programming Contest (\emph{ACM-ICPC}) is an annual
-        competitive programming competition among the universities of world.
+        competitive programming competition among the universities of the world.
         In 2017, 49,935 students from 3,098 universities in 111 countries participated. \cite{acmicpc_fact_sheet}
         Companies value this kind of thinking skills, as well.
         It is a common practice for companies to ask algorithm puzzles when interviewing candidate programmers.
 
-        Higher level coursers in computer science, like Networking, Machine Learning, and so on,
+        Higher level courses in computer science, like Networking, Machine Learning, and so on,
         need students to be able to express their mind in code.
-        Therefore, It is crucial for students to master programming at the very beginning of study,
+        Therefore, It is crucial for students to master programming at the very beginning of the study,
         which puts challenges to entry-level courses, such as Programming Language, Data Structures, and so on.
 
         Like any other skills, both mastering one programming language and learning programmatic thinking
         require students to practice repeatedly.
-        Important ways of these entry-level courses to help students master programming are assignments and exams.
-        Problems in the assignments and exams are likely to be tasks asking students to write code.
+        Essential ways of these entry-level courses to help students master programming are assignments and exams.
+        Problems in the assignments and exams are likely tasks asking students to write code.
         Graphics interfaces, keyboard and mouse inputs, video and audio outputs, networking connections,
         reading from and writing to disks, and so on, are common operations what programs in end-users' computers would have,
         but it would be too much burden for starters.
         Because these problems are for educational purpose only, the tasks are simplified from the real world ones.
 
         Descriptions of these problems are simple and neat. The tasks are idealized.
-        Students do not need to deal with neither incorrect inputs nor malicious data.
+        Students need to deal with neither incorrect inputs nor malicious data.
         Problems are algorithmic in nature, thus there is no need to consider human-computer interaction.
         Memory is assumed to be large enough for the problems, therefore students can avoid disk operations
         and keep everything in memory.
-        In a word, these assignments and exams ask students to write code that focus on the ``computing'' part of programming.
+        In a word, these assignments and exams ask students to write code that focuses on the ``computing'' part of programming.
 
         After students finish the tasks, there need to be some ways to give them feedback, at least,
         tell students whether their solution is correct or not.
@@ -79,32 +79,32 @@
             with the same complexity if not better.
             For instance, suppose an assignment can reduce to a minimum spanning tree problem
             and the author expects the Prim algorithm. \cite{cheriton1976finding}
-            A student might turn in a solution with Kruskral algorithm which is also an algorithm that
+            A student might turn in a solution with Kruskal algorithm which is also an algorithm that
             solves the minimum spanning tree problem. \cite{kruskal1956shortest}
-            In this case, if the grader is not aware of Kruskral algorithm, the grader might give a wrong verdict
-            because Kruskral algorithm looks completely different from Prim algorithm, i.e. the standard solution.
+            In this case, if the grader is not aware of Kruskal algorithm, the grader might give a wrong verdict
+            because Kruskal algorithm looks utterly different from Prim algorithm, i.e., the standard solution.
             Notice that this is not the fault of the grader, because the grader might be a teaching assistant
             who is only expected to be familiar with the standard solution.
-            Neither is this the fault of the problem author, because there can be any number of alternative solutions
+            Neither is this the fault of the problem author because there can be any number of alternative solutions
             and the author cannot enumerate them all.
             Nor should we blame the student.
-            In the contrary, students with alternative solutions should be encouraged.
+            On the contrary, students with alternative solutions should be encouraged.
 
         \subsubsection{Slow Grading}
 
-            Grading a programming solution can takes a long time.
+            Grading a programming solution can take a long time.
             Unlike a solution to mathematics homework in which students will explain their thinking process
             step by step in natural language,
-            a solution to programming problem is code in some programming language which is designed
-            for machines to compile, instead of letting humans to read.
-            The grader have to read the code carefully in order to understand the solution.
+            a solution to a programming problem is code in some programming language which is designed
+            for machines to compile, instead of letting humans read.
+            The grader has to read the code carefully in order to understand the solution.
             Then they need to look into details trying to find potential mistakes.
-            Consequently, the grading process can be very slow.
+            Consequently, the grading process can be prolonged.
 
         \subsubsection{Inconsistency}
 
-            The same solution might have different scores if it is graded by different graders.
-            For example, some graders know more than the standard solutions,
+            The same solution might have different scores if a different grader grade it.
+            For example, some graders know more than the standard solutions
             and thus justify the alternative solutions.
 
             Even for the same grader to check the same solution at different times might lead to different results.
@@ -124,7 +124,7 @@
             For example, supposing the standard solution is Floyd algorithm, \cite{ingerman1962algorithm}
             the grader might expect students' solutions to have two kinds of patterns:
             three nested loops and a dynamic programming equation.
-            However, the solution might mixing up the permutation of the three loop variables,
+            However, the solution might mix up the permutation of the three loop variables,
             which makes the algorithm no longer correct.
             The grader might not be able to find such subtle an error.
 
@@ -145,17 +145,17 @@ for i in range(len(V)):
         \subsubsection{Low Scalability}
 
             One of the hot topics computer scientists deals with is scalability.
-            Ironically, manually grading programming assignments doesn't scale well.
+            Ironically, manually grading programming assignments does not scale well.
             The increasing in either students or problems significantly add burden to graders.
-            Apparently the total number of problems the professor can assign is proportional to
-            the number of teaching assistants, and is inversely proportional to the number of students.
+            Apparently, the total number of problems the professor can assign is proportional to
+            the number of teaching assistants and is inversely proportional to the number of students.
             Although the department could employ more teaching assistants to avoid the intolerable grading time,
             the inconsistency caused by different graders would become more and more disturbing.
 
         \subsubsection{Long Feedback Time}
 
             Manual grading takes graders a long time to justify the correctness of students' solutions,
-            in the mean time, the feedback time of students is even longer.
+            in the meantime, the feedback time of students is even longer.
             Counting the time starting from the moment a student finishes the solution to the moment
             the student knows about the verdict, it usually takes days if not weeks to have the feedback.
             Days after writing the code, the student might need to spend extra time to recover
@@ -179,7 +179,7 @@ for i in range(len(V)):
             In fact, submitting the source code makes more sense than handing in pieces of paper.
             Students can avoid compilation errors by compiling the source code,
             which would be a trivial mistake but often caught in hand-written code.
-            Further more, students can convenience themselves the code is correct by running the code
+            Furthermore, students can convenience themselves the code is correct by running the code
             over several inputs and they can even debug it if they find something not working as expected.
 
             To simplify programming tasks, avoiding fancy human-computer interaction
@@ -206,13 +206,13 @@ for i in range(len(V)):
 
             The problem author can give several sample testcases in the problem description
             to help students understand the problem setting and the input/output format.
-            Students can also use it to verify if there is obvious flaw in the solution.
+            Students can also use it to verify if there is an obvious flaw in the solution.
             However, there should be a set of secret testcases that students cannot access.
             Otherwise, the students merely need to write a program that prints the corresponding
             standard answer according to the input.
 
             Students' solution presumes to be correct if it can pass all testcases.
-            If the program passes only part of the testcases, the online judge can also gives partial credits.
+            If the program passes only part of the testcases, the online judge can also give partial credits.
             With this convention in mind, the grading process becomes programmatic.
 
             \begin{enumerate}
@@ -223,7 +223,7 @@ for i in range(len(V)):
                       time and memory constraints and does not have any malicious behaviors.
                 \item The online judge compares the program output to the corresponding output
                       the problem author designed.
-                \item The above three steps repeats until all of the testcases have been examined.
+                \item The above three steps repeat until all of the testcases have been examined.
                 \item The online judge either claims the solution to be correct if the program
                       has passed all testcases or gives partial credits.
             \end{enumerate}
@@ -268,17 +268,17 @@ for i in range(len(V)):
             because the execution of the grading program is determined.
             As long as the machine running the automatic grader has sufficient computing power,
             the running result will be the same.
-            The maintainer of the online judge simply need to
+            The maintainer of the online judge simply needs to
             make sure the computer is dedicated for automatic grading.
             The automatic grading program would not have any `mood', nor does it feel tired.
             Consequently, it will produce consistent verdicts.
 
             Clearly, the increase in the number of students and problems does not add burdens to the online judge.
             It just reduces the idle time of the automatic grader.
-            At the worst case, new submissions start to accumulate and waits in queue.
+            At the worst case, new submissions start to accumulate and wait in the queue.
             In this case, simply buying more machines and running more automatic graders
             suffice to keep a short enough waiting time.
-            The costs of new computers is cheaper than paying stipend to teaching assistants,
+            The costs of new computers are cheaper than paying a stipend to teaching assistants,
             not to mention that lots of departments have spare servers to use.
 
     \subsection{Online Judges}
@@ -286,7 +286,7 @@ for i in range(len(V)):
         Due to its overwhelming superiority,
         universities widely integrate online judges with programming-related courses \cite{Li2005}.
         There are dozens of popular online judges.
-        Some of them are famous world-wide, such as CodeForces\cite{CodeForces}, TopCoder\cite{Topcoder},
+        Some of them are famous worldwide, such as CodeForces\cite{CodeForces}, TopCoder\cite{Topcoder},
         SPOJ\cite{SPOJ}, uVA\cite{uva}, and so on.
         Online judges can roughly divide into three categories.
 
@@ -299,16 +299,16 @@ for i in range(len(V)):
         or retired Olympiad in Informatics (\emph{OI}) participants,
         such as LibreOJ\cite{loj}, and so on.
         Because most high schools do not teach programming systematically,
-        the only purpose of these kind of online judges is their internal OI training.
+        the only purpose of this kind of online judges is their internal OI training.
 
         The last category is operated by commercial companies.
-        LeetCode\cite{leetcode}, for example, focus on the interview problems ask by big companies.
-        Users need to pay for the full problem set and solutions with high quality explanations.
+        LeetCode\cite{leetcode}, for example, focuses on the interview problems ask by big companies.
+        Users need to pay for the full problem set and solutions with high-quality explanations.
         In China, the market of private tutoring on competitive programming competitions is getting larger.
         Some commercial companies build online judges, compose series of problems, organize contests,
         and teach lessons for their paid customers.
 
-        Interestingly, almost all online judges share the same convention mentioned in previous subsection.
+        Interestingly, almost all online judges share the same convention mentioned in the previous subsection.
         Different online judges have their own characteristics as well.
 
         \subsubsection{Design of Online Judges}
@@ -318,16 +318,16 @@ for i in range(len(V)):
             it can easily support different platform.
             Unlike traditional applications, each operating system has a large share of users of online judges.
             This might be because Windows, Linux, and macOS are all very popular among programmers.
-            In addition, some of competitive programming competitions encourages the usage of Linux,
+            In addition, some competitive programming competitions encourage the use of Linux,
             such as Chinese National Olympiad in Informatics (\emph{NOI}).  % site: NOI Linux article
             Since all operating systems have web browsers,
             users do not need to install extra software to use the online judge.
-            Some active participants of ACM-ICPC or OI even use mobile web browsers on their smart phones
+            Some active participants of ACM-ICPC or OI even use mobile web browsers on their smartphones
             to read problems on online judges and think about them in their spare time.
 
             Users need to register an account on the online judge before they can submit their solution to it.
             Since each solution is tied to an account, online judges can easily show statistics,
-            like which problems the user have solved, which problems the user has tried but not ye solved.
+            like which problems the user has solved, which problems the user has tried but not ye solved.
             Users can design their own training schedule according to these statistics.
             It also enables computer scientists to create models for users and
             then uses artificial intelligence to design the training schedule for users.
@@ -335,13 +335,13 @@ for i in range(len(V)):
             Once users submit a solution through the web interface,
             the online judge keeps the submission in the database,
             and assign an automatic grader to grade the solution.
-            The result of an submission usually can be the following ones:
+            The result of a submission usually can be the following ones:
 
             \begin{description}
                 \item[Accepted] The submitted code has passed all the testcases.
                 \item[Partial Credit] The submitted code has passed part of the testcases.
                 \item[Compilation Error] The submitted code has failed to compile.
-                \item[Wrong Answer] The submitted code has produced incorrect answer on some testcases.
+                \item[Wrong Answer] The submitted code has produced an incorrect answer on some testcases.
                 \item[Runtime Error] The submitted code has exited with non-zero exitcode unexpectedly
                                      when running some testcases.
                 \item[Time Limit Exceeded] The submitted code has not terminated within the specified time limit
@@ -355,8 +355,8 @@ for i in range(len(V)):
             which indicates the performance of a solution.
 
             Online judges can run multiple automatic graders on several machines or
-            on a machine with multiple processor cores.
-            Previous subsection has described how a automatic grader works.
+            a machine with multiple processor cores.
+            The previous subsection has described how an automatic grader works.
 
         \subsubsection{Security Concerns}
 
@@ -374,7 +374,7 @@ for i in range(len(V)):
             Linux API \texttt{setrlimit} can set resource limits for the submitted code,
             including CPU time, memory size, the number of opened files, the number of threads, and so on.
 
-            Some automatic graders uses \emph{ptrace} series of Linux APIs to intercept system calls to
+            Some automatic graders use \emph{ptrace} series of Linux APIs to intercept system calls to
             achieve more accurate control over the execution of the submitted code.
             If students' program tries to invoke a forbidden system call or with undesired arguments,
             the automatic grader will immediately kill the process and give ``Runtime Error'' verdict.
@@ -386,14 +386,14 @@ for i in range(len(V)):
 
             Although these constraints help improve security,
             it can sometimes block the execution of a benign program,
-            especially if the online judge supports variety of programming languages (See Figure \ref{fig:codeforces-languages}).
+            especially if the online judge supports a variety of programming languages (See Figure \ref{fig:codeforces-languages}).
             For instance, the interpretation of a Java source code requires the permission to read
             Java library files and the ability to spawn threads for the just-in-time (\emph{JIT}) compiler to run.
-            Therefore, the system administrator of a online judge need to carefully tune the security policy configuration.
-            Too much constraint will forbid a benign program.
+            Therefore, the system administrator of an online judge needs to tune the security policy configuration carefully.
+            A too much constraint will forbid a benign program.
             Too loose policy might expose the risk of security breach.
             It requires the system administrator to be familiar with the compiler and the execution runtime
-            of each programming language to write a appropriate security policy,
+            of each programming language to write an appropriate security policy,
             which is not feasible for most online judge organizers.
             \begin{figure}[htp]
                 \centering
@@ -405,10 +405,10 @@ for i in range(len(V)):
             Recently, \texttt{cgroups} and Linux namespaces features enables operating system level virtualization.
             Container technologies like \emph{LXC} and \emph{Docker} make limiting resources easier.
             Instead of writing detailed security policy,
-            the system administrator of a online judge simply need to specify the coarse resource limits.
-            The execution of malicious code is tolerable inside the container,
+            the system administrator of an online judge simply needs to specify the coarse resource limits.
+            The execution of malicious code is tolerable inside the container
             because the malicious code can at best corrupt the operating system inside the container
-            which is isolate from other containers and the host operating system.
+            which is isolated from other containers and the host operating system.
             Containers are lightweight as the spawn time is milliseconds and
             there is no overhead of real hardware virtualization.
 
@@ -436,23 +436,23 @@ for i in range(len(V)):
             which are usually kept secret before the contest starts.
             A typical contest lasts a few hours.
             Participants can solve the problem set on their own in arbitrary order.
-            There is a scoreboard displaying real-time score of all participants.
+            There is a scoreboard displaying the real-time score of all participants.
             The scoring rule varies.
-            Most of scoring rules sort the scoreboard by the number of accepted solution.
-            In order to rank among participants who has solved the same number of problems,
+            Most of the scoring rules sort the scoreboard by the number of accepted solution.
+            In order to rank among participants who have solved the same number of problems,
             some rules take the sum of submission time into account, as the second sort key.
-            The ACM-ICPC rule also add extra time penalty to each failure submission.
+            The ACM-ICPC rule also adds extra time penalty to each failure submission.
             The OI rule values partial credits.
             The total score is the sum of credits of all problems, ignoring submission time.
 
-            Ranking system is a great stimulation for participants.
+            The ranking system is great stimulation for participants.
             Figure \ref{fig:codeforces-rating} shows rating changes on CodeForces of a user called \texttt{tourist}.
             Online judges with ranking systems update each participants ranking score
             after the contest has finished.
             The ranking systems are usually variants \cite{bailey_algorithm_2018,mirzayanov_open_2015}
             of the Elo rating system \cite{elo1978rating}.
             It takes two factors into account:
-            the participant's current ranking, and the ranking of other participants.
+            the participant's current ranking and the ranking of other participants.
             It roughly reflects a participant's level.
 
             \begin{figure}[htp]
@@ -462,8 +462,8 @@ for i in range(len(V)):
                 \label{fig:codeforces-rating}
             \end{figure}
 
-            The contest feature can also serve as other purpose.
-            For example, teachers can hold a exam on the online judge
+            The contest feature can also serve other purposes.
+            For example, teachers can hold an exam on the online judge
             and ask students to take the exam on a computer room in a planned time.
             Another useful variant of the contest feature is homework.
             Teaching assistants can hand out the problem set on the online judge,
@@ -472,7 +472,7 @@ for i in range(len(V)):
 
         \subsubsection{Virtual Judge}
 
-            High quality problems span different online judges.
+            High-quality problems span different online judges.
             Sometimes, students might need to register a new account on a newly visited online judge
             just in order to solve a few assignments.
             Sometimes, tutors of competitive programming competitions might want to organize an exam
@@ -496,24 +496,24 @@ for i in range(len(V)):
 
             Students only need to register one account on the virtual judge.
             The virtual judge has several proxy accounts on each online judge.
-            When students submit the code at the virtual judge with their own account,
+            When students submit the code to the virtual judge with their own account,
             the virtual judge automatically submit the code to the corresponding online judge
             with the proxy accounts.
-            Then, the web crawler keeps watching the status pages of these delegated submission
+            Then, the web crawler keeps watching the status pages of these delegated submissions
             until the result is determined.
-            Finally, the virtual judge store the result fetched by the web crawler to its own database
+            Finally, the virtual judge stores the result fetched by the web crawler to its own database
             and show the result to students.
 
             The virtual judge also provides a contest feature.
             It does not require the upstream online judge to have a contest feature.
-            The virtual judge submit a source code in a contest to the upstream online judge
+            The virtual judge submits a source code in a contest to the upstream online judge
             as if it is a normal submission.
             The service logic of contest, like submission time period and time penalty, is handled
             by the virtual judge itself.
 
         \subsubsection{Encouragement in Students' Proactive Participation}
 
-            Once a problem is published on a online judge,
+            Once a problem is published on an online judge,
             it is likely that it will always be there in the future,
             because it does not make much sense to take down a problem.
             Therefore, students can see thousands of problems on the online judge.
@@ -521,22 +521,22 @@ for i in range(len(V)):
             there is nothing to stop them from doing it.
             They can submit their solutions,
             and the online judge will tell whether it is correct or not.
-            It will not require any extra manpower to grade the solution.
+            It will not require any extra human resources to grade the solution.
             In fact, active participants of competitive programming competitions usually proactively
             train themselves on online judges.
-            They even take part in regular contests which online judges organizes.
+            They even take part in regular contests which online judges organize.
 
             With thousands of problems available online, comes another issue:
             students submerged by an overwhelming number of problems usually feel lost
-            if they does not have an experienced teacher to tell them which problems to solve.
+            if they do not have an experienced teacher to tell them which problems to solve.
 
             Some online judges try to address this issue by creating lists of problems
             categorized by the knowledge components that problems need.
             These lists are usually created by teachers,
-            who themselves create the list in a ad-hoc manner
+            whom themselves create the list in an ad-hoc manner
             according to their years of teaching experience.
 
-            Although teachers' experience are precious,
+            Although teachers' experience is precious,
             we must notice that each student is unique.
             They have different mindsets, different ways to understand knowledge,
             and different levels of knowing each knowledge components.
@@ -547,7 +547,7 @@ for i in range(len(V)):
 
 \section{Machine Teaching}
 
-    Machine learning and deep learning have showed their great accuracy and generalization capability
+    Machine learning and deep learning have shown their excellent accuracy and generalization capability
     in many areas including computer visions, natural language processing, speech recognition, and so on.
     However, to train a machine learning model requires experts in machine learning.
     The demand of machine learning model exceeds the supply of ``teachers'' that are able to teach machines.
@@ -578,11 +578,11 @@ for i in range(len(V)):
     it is likely that the ``teacher'' cannot directly ``hard wire''the ``learner''
     because they are usually not the same type of entities.
 
-    Machine teaching applications can look quite different depending who teaches whom.
+    Machine teaching applications can look entirely different depending who teaches whom.
 
     \subsection{Human teacher teaches machine learner}
 
-        Machine learning experts who have deep understanding of the learner algorithm
+        Machine learning experts who have a deep understanding of the learner algorithm
         and human experts in the learner's domain can design the optimal training set
         boosting the training efficiency of the learner.
 

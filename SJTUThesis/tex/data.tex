@@ -6,10 +6,10 @@
 
 \section{Data Overview}
 
-    ACM Honors Class\cite{acmclass} of Shanghai Jiao Tong University is a elite program
-    that cultivates computer scientists and top tier leaders.
-    It has won the champion of ACM-ICPC for several times.
-    And many students in ACM Honors Class have programming experience in high school.
+    ACM Honors Class\cite{acmclass} of Shanghai Jiao Tong University is an elite program
+    that cultivates computer scientists and top-tier leaders.
+    It has won the champion of ACM-ICPC several times.
+    Many students in ACM Honors Class have programming experience in high school.
 
     The Online Judge\cite{acmoj} of ACM Honors Class starts in late 2011.
     At first, it only served the internal needs of ACM Honors Class.
@@ -29,12 +29,12 @@
     Several departments, including School of Electronic Information and Electrical Engineering,
     School of Software, and IEEE Honors Class, use the Online Judge in programming related courses
     like Object-Oriented Programming.
-    As for the Spring 2018 semester, the weekly submission on the Online Judge are more than ten thousand.
+    As for the Spring 2018 semester, the weekly submissions on the Online Judge are more than ten thousand.
 
     Thanks to the Online Judge, our project has enough data to conduct experiments.
 
     \begin{itemize}
-        \item The data we acquired span from October 1, 2011 to March 22, 2018.
+        \item The data we acquired span from October 1, 2011, to March 22, 2018.
         \item There are 7918 distinct users in total.
         \item There are 691 problems in total.
         \item There are 524,586 submissions in total, among which 507,269 is in the C++ language.
@@ -54,14 +54,14 @@
 \section{Data Preprocessing}
 
     Everyone deserves privacy. We do not want to leak users' information.
-    For research purpose, it does not matter which person in real world an account corresponds to,
+    For research purpose, it does not matter which person in the real world an account corresponds to,
     as long as it is still distinguishable between different users.
     Therefore, we map the usernames in the submission records to unique numbers.
 
 \section{\texttt{dev-helper}: The Development Tool}
 
     During the early stage of development,
-    it was helpful to check individual piece of data for varies of reasons,
+    it was helpful to check the individual piece of data for varies of reasons,
     for example, it would be easy to spot some numeric values which do not make sense
     because of some trivial bugs during the feature extraction process.
     Also, randomly browsing the data might also help researchers to sense distribution of the data
@@ -71,8 +71,8 @@
     Hence, we built a development tool called \texttt{dev-helper}
     that helps researchers better understand the data.
     \texttt{dev-helper} is a web application based on the \texttt{Flask}\cite{flask} web framework.
-    It retrieve the raw data from the database and also read processed feature from the filesystem.
-    It can show information of a specific problem to researchers.
+    It retrieves the raw data from the database and also read the processed feature from the filesystem.
+    It can show information about a specific problem to researchers.
     It also provides a function that displays a random problem.
     The information page of a problem includes the following parts (See Figure \ref{fig:dev-helper}):
 
@@ -87,7 +87,7 @@
         \item The description of the problem.
         \item The metadata of the problem, including the problem identifier, time limit, memory limit, and so on.
         \item Values of the problem features.
-        \item A random piece of accepted solution.
+        \item A random piece of accepted solutions.
             There is also a button which when clicked will display another accepted solution randomly.
     \end{itemize}
 
@@ -97,19 +97,19 @@
 
     We categorize problems by its knowledge component, i.e., what types of knowledge this problem examines,
     such as dynamic programming, object-oriented programming, and so on.
-    Tags are important features of a problem,
+    Tags are essential features of a problem,
     but one flaw of our data is that it does not contain the tag information of problems.
-    Therefore, we have to manually label the problems with a list of tags.
+    Therefore, we have to label the problems with a list of tags manually.
 
     In order to prevent different distributions of tags, we hired only one domain expert to label the problems.
-    The domain expert has more than six years of experience in programming and competitive programming competitions,
-    hence is surly capable of labeling the problems.
+    The domain expert has more than six years of experience in programming and competitive programming competitions
+    hence is undoubtedly capable of labeling the problems.
     We added a column of 87 problem tags on the problem information page on \texttt{dev-helper}.
     The experts read the description of a problem and several accepted solutions,
     then marked the corresponding tags, and finally clicked save.
 
-    We believe that problem tags are important parts of the metadata of a problem.
-    Notice that, although we manually tagged the problems afterwards and the domain expert is terrific,
+    We believe that problem tags are essential parts of the metadata of a problem.
+    Notice that, although we manually tagged the problems afterward and the domain expert is terrific,
     the one who knows the intention of a problem is its author.
     Therefore, we suggest that online judges ask problem authors submit problem tags along with the problems.
     Another alternative solution would be allowing users who have already solved the problem to tag the problem.
@@ -127,14 +127,14 @@
     due to the insufficient size and the high bias of the data.
 
     On the user side, similar bias exists.
-    Users seldom if ever try to solve problems that is far above or below their levels.
-    For example, a experienced OI participant would not pick a entry-level programming problem.
+    Users seldom if ever try to solve problems that are far above or below their levels.
+    For example, an experienced OI participant would not pick an entry-level programming problem.
     Conversely, a student who begins to learn programming would not
     attempt to solve an advanced data structure problem.
 
     Although the Online Judge has users from all over the country,
     the majority usage of the Online Judge is still programming-related courses at SJTU.
-    And few students do extra exercises on the Online Judge besides assignments which courses required .
+    And few students do extra exercises on the Online Judge besides assignments which courses required.
 
     Consequently, the data distribution might be highly biased and clustered.
 
@@ -182,13 +182,13 @@
         For each submission record, we extracted the following user features shown in Table \ref{table:user features}.
         All of these features refers the user to the one who made the submission.
         All statistics count before the submission.
-        Features above the separator is the basic feature set.
+        Features above the separator are the basic feature set.
         The extended feature set includes all features in the table.
         Although we assume all students have the same cognitive model,
         different students have different preferences
         which user models might be able to capture from these features.
         For example, a student's code might be significantly longer than the average
-        because he or she writes detailed explanation of the code as comments.
+        because he or she writes detailed explanations of the code as comments.
 
         \begin{table}[hpbt]
         % \begin{adjustwidth}{-1.5cm}{-1.5cm}
@@ -260,9 +260,9 @@
         is that features in the extended feature set would be missing
         during the simulation process used by the reinforcement learning agent.
         During the simulation process, we can properly update the counting features.
-        Whenever the simulator need to pretend the user to submit a solution,
+        Whenever the simulator needs to pretend the user to submit a solution,
         we simply increment the counter of submissions without the need to generate all submission details.
-        Other features, are features of submission details.
+        Other features are features of submission details.
         For example, in order to know the time interval between the consecutive submissions,
         we would need to know the submission time of a non-existing submission,
         which does not exist.
@@ -277,8 +277,8 @@
         In our implementation, we save different features separately.
         Then we generate the input data to user models by concatenating features specified by strings as column vectors.
         This idea can make the feature selection process more flexible.
-        The process of generating each feature costs large amount of memory and requires heavy computation.
-        In the contrary, the concatenation is fast with low memory footprint.
+        The process of generating each feature costs a large amount of memory and requires heavy computation.
+        On the contrary, the concatenation is fast with low memory footprint.
 
 
 
