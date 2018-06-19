@@ -6,7 +6,7 @@
 %%==================================================
 
 % 双面打印
-\documentclass[bachelor, openright, twoside, english]{sjtuthesis}
+\documentclass[bachelor, openany, oneside, english]{sjtuthesis}
 % \documentclass[bachelor, openany, oneside, submit]{sjtuthesis}
 % \documentclass[master, review]{sjtuthesis}
 % \documentclass[%
@@ -53,8 +53,14 @@
 \ifsjtu@review\relax
 % exclude the original claim and authorization
 \else
-	\makeDeclareOriginal
-	\makeDeclareAuthorization
+  \includepdf[pages=1]{pdf/task.pdf}
+  \cleardoublepage
+  \includepdf[pages=2]{pdf/task.pdf}
+  \cleardoublepage
+  \includepdf[pages=3]{pdf/task.pdf}
+  \cleardoublepage
+  \makeDeclareOriginal
+  \makeDeclareAuthorization
 \fi
 \fi
 \makeatother
