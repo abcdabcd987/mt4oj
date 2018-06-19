@@ -1,3 +1,4 @@
+import argparse
 import re
 import math
 import yaml
@@ -111,7 +112,8 @@ def extract_single_problem_features(problem_id):
     return problem_id, f
 
 
-def run_make_problem_features(db):
+def run_make_problem_features():
+    db = get_db()
     cur = get_cur(db)
     cur.execute('SELECT id FROM problems')
     problem_ids = [row['id'] for row in cur]
@@ -131,7 +133,8 @@ def run_make_problem_features(db):
     cur.close()
 
 
-def run_make_features(db):
+def run_make_features():
+    db = get_db()
     with shelve.open('data/problem_features.shelf') as shelf:
         pf = shelf['pf']
     num_tags = len(next(iter(pf.values()))['pf_tags'])
@@ -277,7 +280,8 @@ def run_make_features(db):
     cur.close()
 
 
-def run_makedata_handpick(db):
+def run_makedata_handpick():
+    db = get_db()
     with shelve.open('data/problem_features.shelf') as shelf:
         pf = shelf['pf']
 
@@ -407,11 +411,17 @@ def run_makedata_from_features():
 
 
 def main():
-    db = get_db()
-    # run_make_problem_features(db)
-    # run_make_features(db)
-    # run_makedata_handpick(db)
-    run_makedata_from_features()
+    funcs = dict(
+        gen_problem_features=run_make_problem_features,
+        gen_user_features=run_make_features,
+        concat_features=run_makedata_from_features,
+        handpick=run_makedata_handpick
+    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument('command', choices=funcs.keys())
+    args = parser.parse_args()
+    func = funcs[args.command]
+    func()
 
 
 if __name__ == '__main__':
